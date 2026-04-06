@@ -1080,6 +1080,7 @@ NW:Mira:1,2,3|2,2,1|1,3,2"></textarea>
     <p><strong>Ranking.</strong> Combinations ranked by total group satisfaction, with minimum individual score as the fairness tie-break.</p>
     <p><strong>Privacy.</strong> Nothing leaves your device. Event configs travel as URL hash fragments (never sent to servers). Responses travel as links through your group chat. No accounts, no tracking.</p>
     <div class="actions">
+      <button class="btn" id="help-intro-btn">About Nemawashi</button>
       <button class="btn" id="help-guide-btn">📖 Open full guide</button>
       <button class="btn primary" id="help-ok-btn">Close</button>
     </div>
@@ -1144,7 +1145,9 @@ const STORAGE_PREFIX = 'nemawashi:';
 const DRAFT_KEY = 'nemawashi:__draft';
 const LAST_EVENT_KEY = 'nemawashi.lastEventKey';
 const OWNER_KEY_PREFIX = 'nemawashi.owner.';
-const INTRO_KEY = 'nemawashi.introSeen';
+// Versioned intro key — bump the suffix when intro modal content meaningfully changes
+// so returning users see the new copy. v2: gardening lore expansion (Apr 2026).
+const INTRO_KEY = 'nemawashi.introSeen.v2';
 const NAME_KEY = 'nemawashi.lastName';
 
 /* ============================================================
@@ -2630,6 +2633,10 @@ function bindModals() {
   $('#help-guide-btn').addEventListener('click', () => {
     $('#help-overlay').classList.remove('show');
     setMode('guide');
+  });
+  $('#help-intro-btn').addEventListener('click', () => {
+    $('#help-overlay').classList.remove('show');
+    $('#intro-overlay').classList.add('show');
   });
 
   // Backdrop click closes any overlay (except prompt/confirm — those force a choice)
