@@ -3,3 +3,6 @@
 !README.md
 !LICENSE
 !.gitignore
+!screenshots/
+!screenshots/*.png
+!screenshots/*.jpg

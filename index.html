@@ -110,7 +110,9 @@
   .panel { display: none; }
   main.mode-setup .panel.setup,
   main.mode-respond .panel.respond,
-  main.mode-results .panel.results { display: block; }
+  main.mode-results .panel.results,
+  main.mode-guide .panel.guide { display: block; }
+  main.mode-guide { max-width: 880px; }
 
   h2 { font-size: 18px; margin: 0 0 4px; }
   .lead { color: var(--ink-dim); font-size: 13px; margin: 0 0 16px; }
@@ -471,6 +473,159 @@
   .footer-nav a { color: var(--brand); text-decoration: none; font-weight: 500; }
   .footer-nav a:hover { color: var(--accent); }
 
+  /* ================= Guide page ================= */
+  .panel.guide {
+    padding-bottom: 40px;
+  }
+  .guide-intro {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--brand);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .guide-intro h2 {
+    margin: 0 0 6px; font-size: 20px; color: var(--brand);
+  }
+  .guide-intro p {
+    margin: 6px 0; color: var(--ink-dim); font-size: 14px;
+  }
+  .guide-intro .tagline {
+    font-style: italic; color: var(--ink-dim);
+    font-size: 13px; margin-top: 2px;
+  }
+  .guide-subtabs {
+    display: flex; gap: 6px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 24px;
+  }
+  .guide-subtabs button {
+    flex: 1;
+    background: transparent; border: 0;
+    padding: 10px 14px; border-radius: 6px;
+    font-size: 14px; font-weight: 500;
+    color: var(--ink-dim);
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .guide-subtabs button:hover {
+    color: var(--ink);
+  }
+  .guide-subtabs button.active {
+    background: var(--brand);
+    color: white;
+    box-shadow: 0 1px 2px rgba(17, 37, 67, 0.2);
+  }
+  .guide-subtabs button .role-kanji {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+    font-size: 16px; margin-right: 6px;
+  }
+
+  .guide-track { display: none; }
+  .guide-track.active { display: block; }
+
+  .guide-step {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px 22px;
+    margin-bottom: 18px;
+    position: relative;
+  }
+  .guide-step-header {
+    display: flex; align-items: baseline; gap: 12px;
+    margin-bottom: 10px;
+  }
+  .guide-step-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--brand);
+    color: white;
+    font-weight: 700; font-size: 15px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    align-self: flex-start;
+  }
+  .guide-step h3 {
+    margin: 4px 0 0; font-size: 17px;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .guide-step p {
+    margin: 8px 0;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .guide-step p.muted {
+    color: var(--ink-dim);
+    font-size: 13px;
+  }
+  .guide-step img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    margin: 14px 0 4px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(17, 37, 67, 0.08);
+    background: var(--bg);
+  }
+  .guide-step strong { color: var(--brand-dark); }
+  .guide-step code {
+    background: rgba(31, 58, 95, 0.08);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  .guide-tip {
+    background: var(--like-bg);
+    border-left: 4px solid var(--like);
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  .guide-tip strong {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7a5810;
+    margin-bottom: 4px;
+  }
+  .guide-tip p { margin: 4px 0; color: #4a3806; }
+
+  .guide-powertips {
+    background: var(--brand-light);
+    border: 1px solid rgba(31, 58, 95, 0.2);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-top: 24px;
+  }
+  .guide-powertips h3 {
+    margin: 0 0 10px; font-size: 14px;
+    color: var(--brand-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .guide-powertips ul {
+    margin: 0; padding-left: 18px;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .guide-powertips li {
+    margin: 6px 0; line-height: 1.5;
+  }
+  .guide-powertips li strong {
+    color: var(--brand-dark);
+  }
+
   /* Mobile tweaks */
   @media (max-width: 600px) {
     header.app-header { padding: 8px 10px; gap: 6px; }
@@ -479,6 +634,11 @@
     main { padding: 12px 10px; }
     h2 { font-size: 16px; }
     .winner-axis .ax-pick { font-size: 14px; }
+    .guide-step { padding: 16px; }
+    .guide-step-header { gap: 10px; }
+    .guide-step-num { width: 28px; height: 28px; font-size: 13px; }
+    .guide-step h3 { font-size: 15px; }
+    .guide-subtabs button { padding: 8px 10px; font-size: 13px; }
   }
 </style>
 </head>
@@ -493,6 +653,7 @@
     <button data-mode="setup" class="active">Setup</button>
     <button data-mode="respond">Respond</button>
     <button data-mode="results">Results</button>
+    <button data-mode="guide">Guide</button>
   </div>
   <div class="header-spacer"></div>
   <button class="help-btn" id="help-btn" title="Help">?</button>
@@ -593,6 +754,140 @@ NW:Mira:1,2,3|2,2,1|1,3,2"></textarea>
     </div>
   </section>
 
+  <!-- ============ GUIDE PANEL ============ -->
+  <section class="panel guide">
+    <div class="guide-intro">
+      <h2>How to use Nemawashi</h2>
+      <p>Nemawashi helps a group align across multiple decisions at once &mdash; dates AND location AND hotel AND meals, not just one axis. Each person scores every option, the tool finds the combination that maximises group satisfaction while respecting any vetoes.</p>
+      <p class="tagline">The group chat is the transport layer. No server. No accounts. No data leaving your device.</p>
+    </div>
+
+    <div class="guide-subtabs" id="guide-subtabs">
+      <button data-track="organiser" class="active"><span class="role-kanji">主</span>As the organiser</button>
+      <button data-track="participant"><span class="role-kanji">客</span>As a participant</button>
+    </div>
+
+    <!-- ==== ORGANISER TRACK ==== -->
+    <div class="guide-track active" data-track="organiser">
+
+      <div class="guide-step">
+        <div class="guide-step-header">
+          <span class="guide-step-num">1</span>
+          <h3>Define what needs deciding</h3>
+        </div>
+        <p>Open the <strong>Setup</strong> tab. Give your event a name. Then add as many <em>axes</em> as your decision has dimensions &mdash; dates, location, meal plan, budget tier, whatever. Each axis gets 2&ndash;12 options.</p>
+        <p class="muted">In this example, "FIRE Retreat 2026" has three axes (Dates, Location, Meals), each with three options &mdash; enough for 3&times;3&times;3 = 27 possible combinations.</p>
+        <img src="screenshots/nw-01-setup.png" alt="Setup tab with FIRE Retreat 2026 event configured with three axes: Dates, Location, Meals">
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-header">
+          <span class="guide-step-num">2</span>
+          <h3>Generate the share link</h3>
+        </div>
+        <p>Click <strong>Generate share link</strong>. Nemawashi encodes the entire event into a URL hash fragment &mdash; this is the part of the URL that <em>never gets sent to any server</em>, even by the browser itself. Copy the link and paste it into your group chat (WhatsApp, Slack, email, wherever).</p>
+        <img src="screenshots/nw-02-share-link.png" alt="Setup tab with the generated share link shown in a cream box at the bottom">
+        <div class="guide-tip">
+          <strong>Privacy tip</strong>
+          <p>For sensitive events, click <em>🔐 Encrypted link&hellip;</em> instead. Enter a passphrase and Nemawashi produces an AES-256-GCM encrypted link. Send the passphrase out-of-band (in person, SMS, another channel).</p>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-header">
+          <span class="guide-step-num">3</span>
+          <h3>Collect responses</h3>
+        </div>
+        <p>As each participant sends their <em>share-back link</em> into the chat, just <strong>click it</strong>. Nemawashi detects it's a response, auto-merges the scores into your results, and jumps to the Results tab. No copy-paste, no parsing, no manual work.</p>
+        <p class="muted">If you prefer, you can also paste plain response codes (<code>NW:Ravi:3,1,0|&hellip;</code>) into the textarea manually &mdash; useful for encrypted events or if the link didn't come through a clickable channel.</p>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-header">
+          <span class="guide-step-num">4</span>
+          <h3>Read the verdict</h3>
+        </div>
+        <p>The <strong>Best Combination</strong> card (marked with a <span lang="ja">決</span> "decided" hanko) shows the winning combination &mdash; the choice across every axis that maximises total group satisfaction. Below it, the top 5 ranked combinations let you see near-misses and trade-offs.</p>
+        <p class="muted">Total satisfaction = sum of every participant's score across every axis. Fairness floor = the minimum any one person scored. Ties on total are broken by fairness &mdash; the combo that's least bad for the least-happy person wins.</p>
+        <img src="screenshots/nw-03-results.png" alt="Results tab showing the winning combination card with Mar 15-17 / Coorg / All-inclusive and a top-5 table below">
+      </div>
+
+      <div class="guide-powertips">
+        <h3>Power tips</h3>
+        <ul>
+          <li><strong>What-if mode.</strong> Uncheck a participant's chip in the left column to see how the ranking changes without them. Useful when someone is wavering and you want to see how much their veto is costing the group. Ranking updates instantly.</li>
+          <li><strong>Deadlock detection.</strong> If every possible combination has at least one veto, the results tab shows conflict analysis &mdash; the closest-to-consensus options plus "if X could flex on Y, N combinations unlock" suggestions. Actively moves the conversation forward instead of just saying "no answer".</li>
+          <li><strong>Export the verdict.</strong> <em>Copy results as text</em> gives you a formatted summary to paste back into chat. <em>Download PNG</em> snapshots the whole results view as an image.</li>
+          <li><strong>Saves automatically.</strong> Your draft event, pasted codes, and what-if state all persist to browser storage. Close the tab and come back later.</li>
+        </ul>
+      </div>
+
+      <div class="guide-step" style="background:var(--brand-light);border-color:rgba(31,58,95,0.2);">
+        <div class="guide-step-header">
+          <span class="guide-step-num" style="background:var(--accent);">⚡</span>
+          <h3>What-if mode in action</h3>
+        </div>
+        <p>Here's what happens when you exclude Ravi from the tally. The original winner (Mar 15-17 / Coorg / All-inclusive) becomes Mar 22-24 / Coorg / No meals. Ravi is dimmed but not removed &mdash; flip the checkbox back to restore.</p>
+        <img src="screenshots/nw-06-whatif.png" alt="Results tab with Ravi dimmed in the participant chips and the winner card updated to Mar 22-24 / Coorg / No meals">
+      </div>
+
+    </div>
+
+    <!-- ==== PARTICIPANT TRACK ==== -->
+    <div class="guide-track" data-track="participant">
+
+      <div class="guide-step">
+        <div class="guide-step-header">
+          <span class="guide-step-num">1</span>
+          <h3>Click the link your friend sent</h3>
+        </div>
+        <p>You'll get a URL in your group chat that looks something like <code>https://nemawashi.naklitechie.com/#e=FIRE+Retreat+2026&amp;a=Dates:Mar+15-17,&hellip;</code>. Just click it. Nemawashi opens directly in the <strong>Respond</strong> tab with the event already loaded &mdash; no account, no sign-up, no app to install.</p>
+        <p class="muted">If the link was marked "encrypted", you'll be prompted for a passphrase. Your friend should send that separately.</p>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-header">
+          <span class="guide-step-num">2</span>
+          <h3>Score the options</h3>
+        </div>
+        <p>Type your name at the top, then score every option on every axis. <strong>Tap to cycle</strong> through the four levels:</p>
+        <ul>
+          <li>🚫 <strong>Block</strong> &mdash; "I cannot do this." Vetoes the option entirely. Any combination containing it is eliminated.</li>
+          <li>😐 <strong>Okay</strong> &mdash; "I can live with it." <em>Default for unscored options.</em></li>
+          <li>👍 <strong>Like</strong> &mdash; "I'd prefer this."</li>
+          <li>❤️ <strong>Love</strong> &mdash; "This is my top pick."</li>
+        </ul>
+        <p>You don't have to score <em>everything</em> &mdash; the default is Okay, so you only need to mark what you care about. Only block things you genuinely can't do.</p>
+        <img src="screenshots/nw-04-respond.png" alt="Respond tab with all four score states visible: Mar 15-17 as Love (green), Mar 22-24 as Like (gold), Apr 5-7 as Block (red), and other options in the default Okay state">
+        <div class="guide-tip">
+          <strong>On mobile</strong>
+          <p>Swipe right on a row to upgrade the score one level; swipe left to downgrade. Or just tap &mdash; same cycle.</p>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-header">
+          <span class="guide-step-num">3</span>
+          <h3>Send your response back</h3>
+        </div>
+        <p>Click <strong>Generate share-back link</strong>. Nemawashi produces a URL that bundles the event <em>and</em> your scores into one clickable link. Click <strong>Copy link</strong>, then paste it back into the same group chat.</p>
+        <p class="muted">The link is your whole response compressed into ~250 characters. When the organiser clicks it on their device, their Nemawashi auto-ingests your scores into the results. No copy-paste dance for them, no extra step for you.</p>
+        <img src="screenshots/nw-05-share-back.png" alt="Respond tab showing the generated share-back URL in a cream result box with a Copy link button">
+      </div>
+
+      <div class="guide-powertips">
+        <h3>Power tips</h3>
+        <ul>
+          <li><strong>Only block things you truly can't do.</strong> A Block is a veto &mdash; it eliminates every combination containing that option. If you just dislike something, score it Okay or leave it alone. Respect the group's ability to find <em>any</em> valid answer.</li>
+          <li><strong>Love sparingly.</strong> Save ❤️ for your genuine top picks. If everything is Love, nothing stands out, and the ranking basically reverts to majority vote.</li>
+          <li><strong>Your draft saves automatically.</strong> If you close the tab mid-scoring, the same link reopens to your in-progress response. Your browser stores it locally &mdash; nothing is uploaded.</li>
+          <li><strong>Plain-code fallback.</strong> If the share-back URL doesn't come through well (some chat apps mangle long links), expand <em>Or copy as a plain code</em> to get the raw <code>NW:Name:scores</code> string instead.</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
 </main>
 
 <!-- ============ MODALS ============ -->
@@ -604,7 +899,7 @@ NW:Mira:1,2,3|2,2,1|1,3,2"></textarea>
     <p><strong>What it does.</strong> Plan a group thing — retreat, dinner, project — across multiple decisions at once. Dates AND location AND hotel AND meals. Each person scores every option (or vetoes the ones they can't do). The tool finds the combination that makes the group happiest.</p>
     <p><strong>The trick.</strong> No server, no accounts. The organiser shares a link. Each participant generates a short code. Paste codes back into the group chat. The chat is the transport layer.</p>
     <div class="actions">
-      <button class="btn" id="intro-readme-btn">Read the README</button>
+      <button class="btn" id="intro-guide-btn">📖 Open the guide</button>
       <button class="btn primary" id="intro-ok-btn">Got it</button>
     </div>
   </div>
@@ -612,38 +907,16 @@ NW:Mira:1,2,3|2,2,1|1,3,2"></textarea>
 
 <div class="overlay" id="help-overlay">
   <div class="modal">
-    <h2>How Nemawashi works</h2>
-    <div class="modal-tabs" id="help-tabs">
-      <button data-tab="what" class="active">What</button>
-      <button data-tab="share">Sharing</button>
-      <button data-tab="score">Scoring</button>
-      <button data-tab="privacy">Privacy</button>
-    </div>
-    <div class="modal-tab-content active" data-tab="what">
-      <p>Nemawashi solves multi-axis group decisions. Doodle handles "when?". Nemawashi handles "when AND where AND what kind of hotel AND meal plan" — all in one round.</p>
-      <p>Each axis is a dimension of choice. Each option on each axis can be vetoed by a participant — those vetoed combinations are eliminated. The remaining combinations are ranked by total group satisfaction.</p>
-    </div>
-    <div class="modal-tab-content" data-tab="share">
-      <p><strong>1. Setup tab</strong> — define your axes and options, click <em>Generate share link</em>, send the URL into your group chat.</p>
-      <p><strong>2. Respond tab</strong> — opens automatically when someone clicks the event link. They score the options, click <em>Generate share-back link</em>, send <em>that</em> URL back into the chat.</p>
-      <p><strong>3. Results tab</strong> — when you click each share-back link as it arrives in chat, it auto-merges into your results. No copy-paste required. (You can still paste plain response codes manually if you have them in another format.)</p>
-      <p><strong>Encrypted links</strong> — for sensitive events. Your passphrase never leaves your browser. Share the passphrase out-of-band.</p>
-    </div>
-    <div class="modal-tab-content" data-tab="score">
-      <p>Four levels:</p>
-      <p><strong>🚫 Block</strong> — "I cannot do this." Vetoes the option entirely. Any combination containing it is eliminated.</p>
-      <p><strong>😐 Okay</strong> — "I can live with it." 1 point. <em>Default for unscored options.</em></p>
-      <p><strong>👍 Like</strong> — "I'd prefer this." 2 points.</p>
-      <p><strong>❤️ Love</strong> — "This is my top pick." 3 points.</p>
-      <p>Combinations are ranked first by total score (group happiness), then by minimum individual score (fairness tie-break).</p>
-    </div>
-    <div class="modal-tab-content" data-tab="privacy">
-      <p>Nemawashi has no backend. Nothing leaves your browser.</p>
-      <p>Event configs travel as URL hash fragments — these are <em>never</em> sent to any server, even by the browser itself.</p>
-      <p>Response codes travel through whatever channel the group already uses (WhatsApp, Slack, email). Nemawashi never sees them in transit.</p>
-      <p>Your localStorage remembers your draft so you can come back to it. Click <em>Reset</em> to clear it.</p>
-    </div>
+    <h2>Quick reference</h2>
+    <p><strong>Scoring.</strong> Tap each option to cycle:</p>
+    <p style="margin-left:10px;">🚫 <strong>Block</strong> — "I cannot do this." Vetoes the option.<br>
+    😐 <strong>Okay</strong> — "I can live with it." <em>Default.</em><br>
+    👍 <strong>Like</strong> — "I'd prefer this."<br>
+    ❤️ <strong>Love</strong> — "This is my top pick."</p>
+    <p><strong>Ranking.</strong> Combinations ranked by total group satisfaction, with minimum individual score as the fairness tie-break.</p>
+    <p><strong>Privacy.</strong> Nothing leaves your device. Event configs travel as URL hash fragments (never sent to servers). Responses travel as links through your group chat. No accounts, no tracking.</p>
     <div class="actions">
+      <button class="btn" id="help-guide-btn">📖 Open full guide</button>
       <button class="btn primary" id="help-ok-btn">Close</button>
     </div>
   </div>
@@ -1074,6 +1347,26 @@ function setMode(mode) {
   $$('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   if (mode === 'respond') renderRespond();
   if (mode === 'results') renderResults();
+  if (mode === 'guide') window.scrollTo(0, 0);
+}
+
+function setGuideTrack(track) {
+  if (track !== 'organiser' && track !== 'participant') track = 'organiser';
+  $$('#guide-subtabs button').forEach(b => b.classList.toggle('active', b.dataset.track === track));
+  $$('.guide-track').forEach(t => t.classList.toggle('active', t.dataset.track === track));
+  try { localStorage.setItem('nemawashi.guideTrack', track); } catch (e) {}
+}
+
+function bindGuide() {
+  $('#guide-subtabs').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-track]');
+    if (!b) return;
+    setGuideTrack(b.dataset.track);
+  });
+  // Restore last-viewed track
+  let saved = 'organiser';
+  try { saved = localStorage.getItem('nemawashi.guideTrack') || 'organiser'; } catch (e) {}
+  setGuideTrack(saved);
 }
 
 /* ============================================================
@@ -1777,6 +2070,12 @@ async function loadFromHash() {
   const h = location.hash.slice(1);
   if (!h) return { kind: 'none' };
 
+  // Guide deep-link: #guide or #guide=participant
+  if (h === 'guide' || h.startsWith('guide=')) {
+    const track = h.startsWith('guide=') ? h.slice(6) : null;
+    return { kind: 'guide', track };
+  }
+
   // Encrypted variant — payload is base64.base64.base64, optionally followed by &r=...
   if (h.startsWith('nw_enc:')) {
     // Pull out the encrypted blob (everything up to the first '&' or end of hash)
@@ -1849,21 +2148,18 @@ function bindModals() {
     $('#intro-overlay').classList.remove('show');
     try { localStorage.setItem(INTRO_KEY, '1'); } catch (e) {}
   });
-  $('#intro-readme-btn').addEventListener('click', () => {
-    window.open('https://github.com/NakliTechie/Nemawashi#readme', '_blank');
+  $('#intro-guide-btn').addEventListener('click', () => {
     $('#intro-overlay').classList.remove('show');
     try { localStorage.setItem(INTRO_KEY, '1'); } catch (e) {}
+    setMode('guide');
   });
 
   // Help
   $('#help-btn').addEventListener('click', () => $('#help-overlay').classList.add('show'));
   $('#help-ok-btn').addEventListener('click', () => $('#help-overlay').classList.remove('show'));
-  $('#help-tabs').addEventListener('click', (e) => {
-    const b = e.target.closest('button');
-    if (!b) return;
-    const tab = b.dataset.tab;
-    $$('#help-tabs button').forEach(x => x.classList.toggle('active', x === b));
-    $$('#help-overlay .modal-tab-content').forEach(c => c.classList.toggle('active', c.dataset.tab === tab));
+  $('#help-guide-btn').addEventListener('click', () => {
+    $('#help-overlay').classList.remove('show');
+    setMode('guide');
   });
 
   // Backdrop click closes any overlay (except prompt/confirm — those force a choice)
@@ -1892,6 +2188,7 @@ async function init() {
   bindSetup();
   bindRespond();
   bindResults();
+  bindGuide();
 
   // Try restoring last-edited event from localStorage so a response-only URL
   // (#r=NW:Name:...) has an event to merge into.
@@ -1916,6 +2213,14 @@ async function init() {
   }
 
   const result = await loadFromHash();
+
+  if (result.kind === 'guide') {
+    if (!restoreFromStorage()) ensureMinAxis();
+    if (result.track) setGuideTrack(result.track);
+    setMode('guide');
+    renderSetup();
+    return;
+  }
 
   if (result.kind === 'event') {
     const cached = loadFor(S.event);
@@ -1958,6 +2263,11 @@ async function init() {
 window.addEventListener('hashchange', async () => {
   if (!location.hash) return;
   const result = await loadFromHash();
+  if (result.kind === 'guide') {
+    if (result.track) setGuideTrack(result.track);
+    setMode('guide');
+    return;
+  }
   if (result.kind === 'event') {
     const cached = loadFor(S.event);
     if (cached) {
