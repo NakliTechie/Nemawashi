@@ -1,0 +1,1884 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="author" content="Chirag Patnaik">
+<meta name="description" content="Nemawashi — multi-axis group consensus tool. Single HTML file. No server. No accounts. The group chat is the transport layer.">
+<title>Nemawashi — Multi-axis group consensus</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%23b8332a'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='2' fill='none' stroke='%23ffffff' stroke-opacity='0.18' stroke-width='0.6'/%3E%3Ctext x='16' y='25' font-family='Hiragino Mincho ProN, Yu Mincho, Noto Serif JP, serif' font-size='24' font-weight='400' text-anchor='middle' fill='white'%3E%E6%A0%B9%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    /* Japanese palette — 藍 ai indigo · 朱 shu vermillion · 生成り kinari washi cream · 墨 sumi ink */
+    --brand: #1f3a5f;          /* 藍 ai — Japan blue */
+    --brand-dark: #11253f;     /* deep ai */
+    --brand-light: #d6dde7;    /* misty indigo wash */
+    --accent: #b8332a;         /* 朱 shu — vermillion (hanko red) */
+    --accent-dark: #8e261d;
+    --accent-bg: #f3dad5;
+    --bg: #f3ede0;             /* 生成り kinari — unbleached washi */
+    --panel: #faf6ea;          /* lighter washi */
+    --panel-2: #fbf8ee;
+    --ink: #1a1a1a;            /* 墨 sumi — ink */
+    --ink-dim: #5c5346;        /* faded ink */
+    --line: #e1d8c1;           /* aged paper edge */
+    --line-strong: #c8bda3;
+    --block: #a8201f;          /* 茜 akane — madder red */
+    --block-bg: #f2d8d4;
+    --okay: #889080;           /* 利休鼠 rikyū-nezu — Rikyū grey-green */
+    --okay-bg: #ebe6d4;
+    --like: #d99a1c;           /* 山吹 yamabuki — bright gold */
+    --like-bg: #fae5b5;
+    --love: #5d7b35;           /* 松葉 matsuba — pine green */
+    --love-bg: #d6dfbf;
+    --winner-grad-1: #f7d780;  /* yamabuki gold */
+    --winner-grad-2: #e8b94c;
+    --winner-border: #c89726;
+    --winner-ink: #5b3f0a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 80px;
+  }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a { color: var(--brand-dark); }
+
+  /* Header */
+  header.app-header {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--panel);
+    border-bottom: 2px solid var(--brand);
+    box-shadow: 0 1px 0 var(--accent), 0 2px 0 var(--brand);
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 17px;
+    color: var(--brand);
+    text-decoration: none;
+    letter-spacing: 0.01em;
+  }
+  .brand-mark {
+    width: 30px; height: 30px; border-radius: 4px;
+    background: var(--accent);
+    color: white;
+    font-size: 22px; font-weight: 400;
+    line-height: 1;
+    display: grid; place-items: center;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", "Songti SC", serif;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+    padding-bottom: 2px;
+  }
+  .brand small {
+    font-weight: 400; color: var(--ink-dim); font-size: 12px;
+    margin-left: 2px;
+    font-style: italic;
+  }
+  .tabs {
+    display: flex; gap: 4px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px; padding: 3px;
+  }
+  .tabs button {
+    background: transparent; border: 0;
+    padding: 6px 12px; border-radius: 6px;
+    font-size: 13px; font-weight: 500; color: var(--ink-dim);
+  }
+  .tabs button.active {
+    background: var(--panel); color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .header-spacer { flex: 1; }
+  .help-btn {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid var(--line-strong); background: var(--panel);
+    font-weight: 600; color: var(--ink-dim);
+  }
+  .help-btn:hover { background: var(--bg); color: var(--ink); }
+
+  /* Main panels */
+  main { padding: 18px 16px; max-width: 1100px; margin: 0 auto; }
+  .panel { display: none; }
+  main.mode-setup .panel.setup,
+  main.mode-respond .panel.respond,
+  main.mode-results .panel.results { display: block; }
+
+  h2 { font-size: 18px; margin: 0 0 4px; }
+  .lead { color: var(--ink-dim); font-size: 13px; margin: 0 0 16px; }
+
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--ink-dim); margin-bottom: 4px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .input, textarea {
+    width: 100%; padding: 9px 11px;
+    border: 1px solid var(--line-strong); border-radius: 6px;
+    background: var(--panel); color: var(--ink);
+    transition: border-color 0.15s;
+  }
+  .input:focus, textarea:focus {
+    outline: none; border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-light);
+  }
+  textarea { min-height: 110px; resize: vertical; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; }
+
+  .btn {
+    border: 1px solid var(--line-strong); background: var(--panel);
+    padding: 8px 14px; border-radius: 5px;
+    font-weight: 500; color: var(--ink);
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--bg); border-color: var(--brand); }
+  .btn.primary {
+    background: var(--brand); border-color: var(--brand); color: white;
+    box-shadow: 0 1px 0 var(--brand-dark);
+  }
+  .btn.primary:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
+  .btn.accent {
+    background: var(--accent); border-color: var(--accent); color: white;
+    box-shadow: 0 1px 0 var(--accent-dark);
+  }
+  .btn.accent:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+  .btn.danger { color: var(--block); border-color: var(--block); background: var(--panel); }
+  .btn.danger:hover { background: var(--block-bg); }
+  .btn.small { padding: 4px 9px; font-size: 12px; }
+  .btn.icon { padding: 4px 8px; }
+
+  /* Setup tab */
+  .axes-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+  .axis-card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px;
+  }
+  .axis-card-head {
+    display: flex; gap: 8px; align-items: center; margin-bottom: 10px;
+  }
+  .axis-card-head .input { flex: 1; font-weight: 600; }
+  .axis-options { display: flex; flex-direction: column; gap: 6px; }
+  .axis-opt-row { display: flex; gap: 6px; align-items: center; }
+  .axis-opt-row .input { flex: 1; font-size: 14px; }
+  .axis-add-row { display: flex; gap: 8px; margin-top: 8px; }
+  .axis-actions { display: flex; gap: 6px; }
+  .drag-handle {
+    cursor: grab; color: var(--ink-dim); font-size: 18px;
+    user-select: none; padding: 0 4px;
+  }
+  .drag-handle:active { cursor: grabbing; }
+  .axis-card.dragging { opacity: 0.5; }
+  .axis-card.drag-over { border-color: var(--brand); border-style: dashed; }
+
+  .setup-actions {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-top: 18px; padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .share-result {
+    margin-top: 14px; padding: 12px;
+    background: var(--brand-light); border-radius: 6px;
+    word-break: break-all; font-size: 12px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    display: none;
+  }
+  .share-result.show { display: block; }
+  .share-result-bar {
+    display: flex; gap: 8px; margin-bottom: 8px;
+    font-family: -apple-system, sans-serif; font-size: 13px;
+    align-items: center;
+  }
+  .share-result-bar strong { color: var(--brand-dark); flex: 1; }
+
+  /* Respond tab */
+  .respond-axis {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 14px; margin-bottom: 12px;
+  }
+  .respond-axis h3 { margin: 0 0 10px; font-size: 15px; }
+  .score-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px; border-radius: 6px;
+    border: 1px solid var(--line);
+    margin-bottom: 6px; background: var(--panel);
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .score-row .opt-name { flex: 1; font-size: 14px; }
+  .score-buttons { display: flex; gap: 4px; }
+  .score-btn {
+    width: 36px; height: 32px; border-radius: 5px;
+    border: 1px solid transparent; background: transparent;
+    font-size: 16px; padding: 0;
+    transition: all 0.15s;
+  }
+  .score-btn:hover { background: var(--bg); }
+  .score-btn.active.s0 { background: var(--block-bg); border-color: var(--block); }
+  .score-btn.active.s1 { background: var(--okay-bg); border-color: var(--okay); }
+  .score-btn.active.s2 { background: var(--like-bg); border-color: var(--like); }
+  .score-btn.active.s3 { background: var(--love-bg); border-color: var(--love); }
+  .score-row.s0 { background: var(--block-bg); }
+  .score-row.s2 { background: var(--like-bg); }
+  .score-row.s3 { background: var(--love-bg); }
+
+  .respond-name-row {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 14px; margin-bottom: 14px;
+  }
+
+  /* Results tab */
+  .results-cols { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 900px) {
+    .results-cols { grid-template-columns: 320px 1fr; }
+  }
+  .responses-pane {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 14px;
+  }
+  .responses-pane h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink-dim); }
+  .participant-chips { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .pchip {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border: 1px solid var(--line);
+    border-radius: 6px; background: var(--bg);
+    font-size: 13px;
+  }
+  .pchip input[type=checkbox] { margin: 0; }
+  .pchip .pname { flex: 1; font-weight: 500; }
+  .pchip.excluded { opacity: 0.4; }
+  .pchip .x {
+    border: 0; background: transparent; color: var(--ink-dim);
+    font-size: 16px; padding: 0 4px;
+  }
+  .pchip .x:hover { color: var(--block); }
+
+  .winner-card {
+    background:
+      linear-gradient(135deg, var(--winner-grad-1) 0%, var(--winner-grad-2) 100%);
+    border: 1px solid var(--winner-border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    box-shadow: 0 2px 0 rgba(91, 63, 10, 0.08);
+  }
+  /* hanko stamp in the corner — 決 = "decided" */
+  .winner-card::after {
+    content: '決';
+    position: absolute; top: 12px; right: 12px;
+    width: 38px; height: 38px;
+    background: var(--accent);
+    color: white;
+    border-radius: 4px;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", "Songti SC", serif;
+    font-size: 24px;
+    line-height: 38px;
+    text-align: center;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22),
+                0 1px 2px rgba(91, 63, 10, 0.25);
+    transform: rotate(-7deg);
+    pointer-events: none;
+  }
+  .winner-card h3 {
+    margin: 0 0 14px; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--winner-ink);
+    font-weight: 700;
+  }
+  .winner-axes { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+  .winner-axis {
+    display: flex; gap: 14px; align-items: baseline;
+    padding: 8px 12px;
+    background: rgba(251, 248, 238, 0.7);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+  }
+  .winner-axis .ax-name {
+    font-size: 11px; text-transform: uppercase;
+    color: var(--winner-ink); letter-spacing: 0.06em;
+    min-width: 80px; font-weight: 600;
+    opacity: 0.75;
+  }
+  .winner-axis .ax-pick { font-weight: 700; font-size: 16px; color: var(--ink); }
+  .winner-stats {
+    display: flex; gap: 18px; font-size: 12px;
+    color: var(--winner-ink); font-weight: 500;
+    border-top: 1px solid rgba(91, 63, 10, 0.2);
+    padding-top: 10px;
+  }
+
+  .heatmap-wrap {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 14px; margin-bottom: 16px;
+    overflow-x: auto;
+  }
+  .heatmap-wrap h3 { margin: 0 0 6px; font-size: 14px; }
+  .heatmap-wrap .axis-label { font-size: 12px; color: var(--ink-dim); margin-bottom: 8px; }
+  .heatmap {
+    display: grid; gap: 2px;
+    font-size: 12px; min-width: 100%;
+  }
+  .hm-cell {
+    padding: 6px 4px; text-align: center;
+    border-radius: 3px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .hm-head { font-weight: 600; background: var(--bg); }
+  .hm-name { font-weight: 500; background: var(--bg); text-align: left; padding-left: 8px; }
+  .hm-cell.s0 { background: var(--block-bg); color: var(--block); font-weight: 600; }
+  .hm-cell.s1 { background: var(--okay-bg); color: var(--ink-dim); }
+  .hm-cell.s2 { background: var(--like-bg); color: #8b5a0a; }
+  .hm-cell.s3 { background: var(--love-bg); color: #3d5520; font-weight: 600; }
+  .hm-cell.s0::after { content: '🚫'; margin-left: 2px; }
+  .heatmap.dimmed .hm-name.excluded,
+  .heatmap.dimmed .hm-cell.excluded { opacity: 0.25; }
+
+  .top-table {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 14px; margin-bottom: 16px;
+    overflow-x: auto;
+  }
+  .top-table h3 { margin: 0 0 10px; font-size: 14px; }
+  .top-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .top-table th, .top-table td {
+    padding: 7px 8px; text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+  .top-table th { font-size: 11px; text-transform: uppercase; color: var(--ink-dim); letter-spacing: 0.03em; }
+  .top-table tr:last-child td { border-bottom: 0; }
+  .top-table .rank { color: var(--ink-dim); width: 28px; }
+  .top-table .score { font-weight: 600; text-align: right; width: 60px; }
+  .top-table .min { text-align: right; color: var(--ink-dim); width: 50px; }
+
+  .deadlock {
+    background: var(--block-bg);
+    border: 1px solid var(--block);
+    border-left: 4px solid var(--block);
+    border-radius: 6px; padding: 16px; margin-bottom: 16px;
+  }
+  .deadlock h3 { margin: 0 0 8px; color: var(--block); font-size: 15px; }
+  .deadlock-suggest { font-size: 13px; color: #6b1717; margin: 6px 0; }
+  .deadlock-suggest strong { font-weight: 600; }
+
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--ink-dim); font-size: 14px;
+  }
+  .empty-state strong { display: block; color: var(--ink); margin-bottom: 6px; font-size: 16px; }
+
+  .results-actions {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+
+  .warn-banner {
+    background: var(--like-bg); border: 1px solid var(--like);
+    border-left: 4px solid var(--like);
+    color: #6b4a08; padding: 10px 14px;
+    border-radius: 6px; font-size: 13px;
+    margin-bottom: 14px;
+  }
+
+  /* Modals (overlay outside .panel so they always show) */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(12, 10, 9, 0.4);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 16px;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: var(--panel); border-radius: 12px;
+    padding: 20px 22px; max-width: 540px; width: 100%;
+    max-height: 88vh; overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+  }
+  .modal h2 { margin: 0 0 8px; font-size: 18px; }
+  .modal p { margin: 8px 0; color: var(--ink-dim); }
+  .modal .actions {
+    display: flex; gap: 8px; justify-content: flex-end;
+    margin-top: 16px;
+  }
+  .modal-tabs {
+    display: flex; gap: 4px;
+    border-bottom: 1px solid var(--line);
+    margin: 12px 0; overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .modal-tabs::-webkit-scrollbar { display: none; }
+  .modal-tabs button {
+    background: transparent; border: 0;
+    padding: 8px 12px; font-size: 13px;
+    color: var(--ink-dim); border-bottom: 2px solid transparent;
+    margin-bottom: -1px; white-space: nowrap;
+  }
+  .modal-tabs button.active { color: var(--brand-dark); border-bottom-color: var(--brand); font-weight: 600; }
+  .modal-tab-content { display: none; }
+  .modal-tab-content.active { display: block; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 70px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: white;
+    padding: 10px 18px; border-radius: 22px;
+    font-size: 13px; font-weight: 500;
+    opacity: 0; transition: all 0.25s;
+    z-index: 200; pointer-events: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--block); }
+
+  /* Footer nav */
+  .footer-nav {
+    position: fixed; bottom: 12px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 24px;
+    background: rgba(251, 248, 238, 0.94);
+    border: 1px solid var(--line);
+    padding: 6px 18px; border-radius: 20px;
+    box-shadow: 0 1px 6px rgba(28, 38, 65, 0.08);
+    font-size: 0.72rem; backdrop-filter: blur(8px);
+    z-index: 40;
+  }
+  .footer-nav a { color: var(--brand); text-decoration: none; font-weight: 500; }
+  .footer-nav a:hover { color: var(--accent); }
+
+  /* Mobile tweaks */
+  @media (max-width: 600px) {
+    header.app-header { padding: 8px 10px; gap: 6px; }
+    .brand small { display: none; }
+    .tabs button { padding: 5px 9px; font-size: 12px; }
+    main { padding: 12px 10px; }
+    h2 { font-size: 16px; }
+    .winner-axis .ax-pick { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a class="brand" href="./">
+    <span class="brand-mark" lang="ja">根</span>
+    <span>Nemawashi <small>nemawashi · 根回し</small></span>
+  </a>
+  <div class="tabs" role="tablist">
+    <button data-mode="setup" class="active">Setup</button>
+    <button data-mode="respond">Respond</button>
+    <button data-mode="results">Results</button>
+  </div>
+  <div class="header-spacer"></div>
+  <button class="help-btn" id="help-btn" title="Help">?</button>
+</header>
+
+<main id="main" class="mode-setup">
+
+  <!-- ============ SETUP PANEL ============ -->
+  <section class="panel setup">
+    <h2>Create a decision</h2>
+    <p class="lead">Define what needs deciding. Add as many axes as you need — dates, location, hotel tier, meal plan. Each axis gets 2–10 options.</p>
+
+    <div class="field">
+      <label for="event-name">Event name</label>
+      <input id="event-name" class="input" placeholder="e.g. FIRE Retreat 2026" maxlength="80">
+    </div>
+
+    <div class="axes-list" id="axes-list"></div>
+
+    <button class="btn" id="add-axis-btn">+ Add axis</button>
+
+    <div class="setup-actions">
+      <button class="btn primary" id="gen-link-btn">Generate share link</button>
+      <button class="btn accent" id="gen-enc-btn">🔐 Encrypted link…</button>
+      <button class="btn" id="reset-btn">Reset</button>
+    </div>
+
+    <div class="share-result" id="share-result">
+      <div class="share-result-bar">
+        <strong id="share-result-title">Share this link</strong>
+        <button class="btn small" id="copy-link-btn">Copy</button>
+        <button class="btn small" id="open-link-btn">Open</button>
+      </div>
+      <div id="share-result-url"></div>
+    </div>
+  </section>
+
+  <!-- ============ RESPOND PANEL ============ -->
+  <section class="panel respond">
+    <h2 id="respond-title">Score the options</h2>
+    <p class="lead">Tap each option to cycle: Okay → Like → Love → Block → Okay. Default is Okay — you only need to mark what you care about.</p>
+
+    <div class="respond-name-row">
+      <div class="field" style="margin: 0;">
+        <label for="my-name">Your name</label>
+        <input id="my-name" class="input" placeholder="e.g. Ravi" maxlength="40">
+      </div>
+    </div>
+
+    <div id="respond-axes"></div>
+
+    <div class="setup-actions">
+      <button class="btn primary" id="gen-resp-btn">Generate response code</button>
+    </div>
+
+    <div class="share-result" id="resp-result">
+      <div class="share-result-bar">
+        <strong>Paste this in the group chat</strong>
+        <button class="btn small" id="copy-resp-btn">Copy</button>
+      </div>
+      <div id="resp-result-code"></div>
+    </div>
+  </section>
+
+  <!-- ============ RESULTS PANEL ============ -->
+  <section class="panel results">
+    <h2>Tally responses</h2>
+    <p class="lead">Paste response codes below — one per line. The tool finds the combination that maximises group satisfaction while respecting any vetoes.</p>
+
+    <div id="results-warn" class="warn-banner" style="display:none;"></div>
+
+    <div class="results-cols">
+      <div class="responses-pane">
+        <h3>Response codes</h3>
+        <textarea id="codes-input" placeholder="NW:Ravi:2,3,1|1,3,2|3,1,1
+NW:Mira:1,2,3|2,2,1|1,3,2"></textarea>
+        <div class="participant-chips" id="participant-chips"></div>
+      </div>
+      <div id="results-output">
+        <div class="empty-state" id="results-empty">
+          <strong>No responses yet</strong>
+          Paste response codes on the left to see the winning combination.
+        </div>
+      </div>
+    </div>
+
+    <div class="results-actions" id="results-actions" style="display:none;">
+      <button class="btn" id="copy-results-btn">Copy results as text</button>
+      <button class="btn" id="download-png-btn">Download PNG</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ MODALS ============ -->
+
+<div class="overlay" id="intro-overlay">
+  <div class="modal">
+    <h2>Welcome to Nemawashi</h2>
+    <p><em>根回し</em> — the Japanese practice of building informal consensus before a formal decision. Literally "going around the roots."</p>
+    <p><strong>What it does.</strong> Plan a group thing — retreat, dinner, project — across multiple decisions at once. Dates AND location AND hotel AND meals. Each person scores every option (or vetoes the ones they can't do). The tool finds the combination that makes the group happiest.</p>
+    <p><strong>The trick.</strong> No server, no accounts. The organiser shares a link. Each participant generates a short code. Paste codes back into the group chat. The chat is the transport layer.</p>
+    <div class="actions">
+      <button class="btn" id="intro-readme-btn">Read the README</button>
+      <button class="btn primary" id="intro-ok-btn">Got it</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="help-overlay">
+  <div class="modal">
+    <h2>How Nemawashi works</h2>
+    <div class="modal-tabs" id="help-tabs">
+      <button data-tab="what" class="active">What</button>
+      <button data-tab="share">Sharing</button>
+      <button data-tab="score">Scoring</button>
+      <button data-tab="privacy">Privacy</button>
+    </div>
+    <div class="modal-tab-content active" data-tab="what">
+      <p>Nemawashi solves multi-axis group decisions. Doodle handles "when?". Nemawashi handles "when AND where AND what kind of hotel AND meal plan" — all in one round.</p>
+      <p>Each axis is a dimension of choice. Each option on each axis can be vetoed by a participant — those vetoed combinations are eliminated. The remaining combinations are ranked by total group satisfaction.</p>
+    </div>
+    <div class="modal-tab-content" data-tab="share">
+      <p><strong>1. Setup tab</strong> — define your axes and options, click <em>Generate share link</em>, copy the URL into your group chat.</p>
+      <p><strong>2. Respond tab</strong> — opens automatically when someone clicks the link. They score the options, generate a short code, paste it back into chat.</p>
+      <p><strong>3. Results tab</strong> — paste all the response codes (one per line). The tool computes the winning combination.</p>
+      <p><strong>Encrypted links</strong> — for sensitive events. Your passphrase never leaves your browser. Share the passphrase out-of-band.</p>
+    </div>
+    <div class="modal-tab-content" data-tab="score">
+      <p>Four levels:</p>
+      <p><strong>🚫 Block</strong> — "I cannot do this." Vetoes the option entirely. Any combination containing it is eliminated.</p>
+      <p><strong>😐 Okay</strong> — "I can live with it." 1 point. <em>Default for unscored options.</em></p>
+      <p><strong>👍 Like</strong> — "I'd prefer this." 2 points.</p>
+      <p><strong>❤️ Love</strong> — "This is my top pick." 3 points.</p>
+      <p>Combinations are ranked first by total score (group happiness), then by minimum individual score (fairness tie-break).</p>
+    </div>
+    <div class="modal-tab-content" data-tab="privacy">
+      <p>Nemawashi has no backend. Nothing leaves your browser.</p>
+      <p>Event configs travel as URL hash fragments — these are <em>never</em> sent to any server, even by the browser itself.</p>
+      <p>Response codes travel through whatever channel the group already uses (WhatsApp, Slack, email). Nemawashi never sees them in transit.</p>
+      <p>Your localStorage remembers your draft so you can come back to it. Click <em>Reset</em> to clear it.</p>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="help-ok-btn">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="prompt-overlay">
+  <div class="modal">
+    <h2 id="prompt-title">Enter a value</h2>
+    <p id="prompt-message"></p>
+    <input id="prompt-input" class="input" type="text">
+    <div class="actions">
+      <button class="btn" id="prompt-cancel">Cancel</button>
+      <button class="btn primary" id="prompt-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="confirm-overlay">
+  <div class="modal">
+    <h2 id="confirm-title">Are you sure?</h2>
+    <p id="confirm-message"></p>
+    <div class="actions">
+      <button class="btn" id="confirm-cancel">Cancel</button>
+      <button class="btn primary" id="confirm-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="footer-nav">
+  <a href="https://naklitechie.github.io/" target="_blank" rel="noopener">⬅ More Projects</a>
+  <a href="https://github.com/NakliTechie/Nemawashi" target="_blank" rel="noopener">⌨ Source</a>
+</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   STATE
+   ============================================================ */
+
+const S = {
+  mode: 'setup',
+  event: { name: '', axes: [] },
+  myName: '',
+  myScores: {},          // { axisIdx: { optIdx: 0|1|2|3 } }
+  responses: [],         // [{ name, scores: number[][], raw }]
+  rawCodes: '',
+  whatIfExcluded: new Set(),
+  configWasShared: false,
+  fromHash: false,       // true if loaded via shared link
+  introSeen: false,
+};
+window.S = S;            // expose for tests.html
+
+const STORAGE_PREFIX = 'nemawashi:';
+const INTRO_KEY = 'nemawashi.introSeen';
+const NAME_KEY = 'nemawashi.lastName';
+
+/* ============================================================
+   PURE FUNCTIONS — exposed on window for tests.html
+   ============================================================ */
+
+// djb2 string hash → eventId
+function djb2(str) {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
+  return (h >>> 0).toString(36);
+}
+window.djb2 = djb2;
+
+function eventId(event) {
+  return djb2(JSON.stringify({
+    name: event.name,
+    axes: event.axes.map(a => ({ name: a.name, options: a.options })),
+  }));
+}
+window.eventId = eventId;
+
+// ---- Plain config encoding ----
+function encodeConfig(event) {
+  const e = encodeURIComponent(event.name || '');
+  const a = (event.axes || [])
+    .map(ax => encodeURIComponent(ax.name || '') + ':' +
+               (ax.options || []).map(encodeURIComponent).join(','))
+    .join('|');
+  return `e=${e}&a=${a}`;
+}
+window.encodeConfig = encodeConfig;
+
+function decodeConfig(hashBody) {
+  // hashBody is the part after #, possibly with leading "e=..."
+  const params = {};
+  hashBody.split('&').forEach(pair => {
+    const eq = pair.indexOf('=');
+    if (eq < 0) return;
+    params[pair.slice(0, eq)] = pair.slice(eq + 1);
+  });
+  const name = decodeURIComponent(params.e || '');
+  const axesStr = params.a || '';
+  const axes = axesStr ? axesStr.split('|').map((seg, i) => {
+    const colon = seg.indexOf(':');
+    const rawName = colon >= 0 ? seg.slice(0, colon) : seg;
+    const rawOpts = colon >= 0 ? seg.slice(colon + 1) : '';
+    return {
+      id: 'a' + i,
+      name: decodeURIComponent(rawName),
+      options: rawOpts ? rawOpts.split(',').map(o => decodeURIComponent(o)) : [],
+    };
+  }) : [];
+  return { name, axes };
+}
+window.decodeConfig = decodeConfig;
+
+// ---- Response codes ----
+function sanitiseName(name) {
+  return (name || '').replace(/[:|,\s]+/g, '_').slice(0, 40) || 'Anon';
+}
+window.sanitiseName = sanitiseName;
+
+function formatCode(name, scoresMatrix) {
+  const safe = sanitiseName(name);
+  const body = scoresMatrix.map(row => row.join(',')).join('|');
+  return `NW:${safe}:${body}`;
+}
+window.formatCode = formatCode;
+
+function parseCode(line) {
+  if (!line) return null;
+  const m = line.trim().match(/^NW:([^:]+):(.+)$/);
+  if (!m) return null;
+  const name = m[1];
+  const axes = m[2].split('|');
+  const scores = [];
+  for (const axStr of axes) {
+    const row = [];
+    for (const tok of axStr.split(',')) {
+      const x = parseInt(tok, 10);
+      if (Number.isNaN(x) || x < 0 || x > 3) return null;
+      row.push(x);
+    }
+    if (!row.length) return null;
+    scores.push(row);
+  }
+  return { name, scores, raw: line.trim() };
+}
+window.parseCode = parseCode;
+
+function parseCodes(text) {
+  const out = [];
+  const errors = [];
+  const seen = new Map(); // name → index in out
+  text.split(/\r?\n/).forEach((line, i) => {
+    const t = line.trim();
+    if (!t) return;
+    const p = parseCode(t);
+    if (!p) { errors.push({ line: i + 1, text: t }); return; }
+    if (seen.has(p.name)) {
+      out[seen.get(p.name)] = p; // later replaces earlier
+    } else {
+      seen.set(p.name, out.length);
+      out.push(p);
+    }
+  });
+  return { responses: out, errors };
+}
+window.parseCodes = parseCodes;
+
+// ---- Combinatorics + scoring ----
+function* combinations(axes) {
+  const lens = axes.map(a => a.options.length);
+  if (lens.length === 0) { yield []; return; }
+  if (lens.some(l => l === 0)) return;
+  const idx = lens.map(() => 0);
+  while (true) {
+    yield idx.slice();
+    let i = lens.length - 1;
+    while (i >= 0) {
+      idx[i]++;
+      if (idx[i] < lens[i]) break;
+      idx[i] = 0;
+      i--;
+    }
+    if (i < 0) return;
+  }
+}
+window.combinations = combinations;
+
+function comboCount(axes) {
+  return axes.reduce((p, a) => p * Math.max(a.options.length, 0), 1);
+}
+window.comboCount = comboCount;
+
+function scoreFor(scoreRow, optIdx) {
+  // unscored or undefined → Okay (1)
+  if (!scoreRow) return 1;
+  const v = scoreRow[optIdx];
+  return (v === undefined || v === null) ? 1 : v;
+}
+
+function isValid(combo, responses) {
+  for (const r of responses) {
+    for (let ax = 0; ax < combo.length; ax++) {
+      if (scoreFor(r.scores[ax], combo[ax]) === 0) return false;
+    }
+  }
+  return true;
+}
+window.isValid = isValid;
+
+function scoreCombo(combo, responses) {
+  let total = 0;
+  let min = Infinity;
+  for (const r of responses) {
+    let perPerson = 0;
+    for (let ax = 0; ax < combo.length; ax++) {
+      perPerson += scoreFor(r.scores[ax], combo[ax]);
+    }
+    total += perPerson;
+    if (perPerson < min) min = perPerson;
+  }
+  if (!Number.isFinite(min)) min = 0;
+  return { total, min };
+}
+window.scoreCombo = scoreCombo;
+
+function vetoesOf(combo, responses) {
+  // Returns list of {name, axis, optIdx} that block this combo
+  const out = [];
+  for (const r of responses) {
+    for (let ax = 0; ax < combo.length; ax++) {
+      if (scoreFor(r.scores[ax], combo[ax]) === 0) {
+        out.push({ name: r.name, axis: ax, optIdx: combo[ax] });
+      }
+    }
+  }
+  return out;
+}
+window.vetoesOf = vetoesOf;
+
+async function rankCombinations(axes, responses) {
+  const valid = [];
+  const invalid = [];
+  let i = 0;
+  for (const combo of combinations(axes)) {
+    const vetoes = vetoesOf(combo, responses);
+    if (vetoes.length === 0) {
+      valid.push({ combo: combo.slice(), ...scoreCombo(combo, responses) });
+    } else {
+      invalid.push({ combo: combo.slice(), vetoes, vetoCount: vetoes.length });
+    }
+    if (++i % 5000 === 0) await new Promise(r => setTimeout(r, 0));
+  }
+  valid.sort((a, b) => b.total - a.total || b.min - a.min);
+  invalid.sort((a, b) => a.vetoCount - b.vetoCount);
+  return { valid, invalid };
+}
+window.rankCombinations = rankCombinations;
+
+// ---- Encrypted share (CONV.md canonical, PBKDF2 200k, dot-separated) ----
+const _b64u = (arr) => btoa(String.fromCharCode(...arr))
+  .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+const _fromB64u = (s) => Uint8Array.from(
+  atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)),
+  c => c.charCodeAt(0)
+);
+
+async function encryptShare(data, passphrase) {
+  const raw = new TextEncoder().encode(JSON.stringify(data));
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const keyMat = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(passphrase),
+    'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 200000, hash: 'SHA-256' },
+    keyMat, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+  const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, raw);
+  return `${_b64u(salt)}.${_b64u(iv)}.${_b64u(new Uint8Array(cipher))}`;
+}
+window.encryptShare = encryptShare;
+
+async function decryptShare(payload, passphrase) {
+  const parts = payload.split('.');
+  if (parts.length !== 3) throw new Error('bad payload');
+  const salt = _fromB64u(parts[0]);
+  const iv = _fromB64u(parts[1]);
+  const cipher = _fromB64u(parts[2]);
+  const keyMat = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(passphrase),
+    'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 200000, hash: 'SHA-256' },
+    keyMat, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, cipher);
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+window.decryptShare = decryptShare;
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+
+function storageKey() { return STORAGE_PREFIX + eventId(S.event); }
+
+function persist() {
+  try {
+    const k = storageKey();
+    localStorage.setItem(k, JSON.stringify({
+      event: S.event,
+      myName: S.myName,
+      myScores: S.myScores,
+      rawCodes: S.rawCodes,
+    }));
+  } catch (e) { /* quota etc — ignore */ }
+}
+
+function loadFor(event) {
+  try {
+    const k = STORAGE_PREFIX + eventId(event);
+    const raw = localStorage.getItem(k);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
+
+/* ============================================================
+   DOM HELPERS
+   ============================================================ */
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+const el = (tag, attrs = {}, ...children) => {
+  const node = document.createElement(tag);
+  for (const k in attrs) {
+    if (k === 'class') node.className = attrs[k];
+    else if (k === 'html') node.innerHTML = attrs[k];
+    else if (k.startsWith('on')) node.addEventListener(k.slice(2), attrs[k]);
+    else if (attrs[k] !== false && attrs[k] !== null && attrs[k] !== undefined) node.setAttribute(k, attrs[k]);
+  }
+  for (const c of children) {
+    if (c == null) continue;
+    node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+  }
+  return node;
+};
+
+let toastTimer = null;
+function toast(msg, kind = '') {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + kind;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = 'toast'; }, 2200);
+}
+
+// In-app prompt / confirm (replace native, CONV.md pattern)
+function nwPrompt({ title, message, defaultValue = '', okLabel = 'OK' }) {
+  return new Promise((resolve) => {
+    $('#prompt-title').textContent = title || 'Enter a value';
+    $('#prompt-message').textContent = message || '';
+    const input = $('#prompt-input');
+    input.value = defaultValue;
+    $('#prompt-ok').textContent = okLabel;
+    const overlay = $('#prompt-overlay');
+    overlay.classList.add('show');
+    setTimeout(() => input.focus(), 30);
+    const cleanup = () => {
+      overlay.classList.remove('show');
+      $('#prompt-ok').onclick = null;
+      $('#prompt-cancel').onclick = null;
+      input.onkeydown = null;
+    };
+    $('#prompt-ok').onclick = () => { const v = input.value.trim(); cleanup(); resolve(v); };
+    $('#prompt-cancel').onclick = () => { cleanup(); resolve(null); };
+    input.onkeydown = (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); $('#prompt-ok').click(); }
+      else if (e.key === 'Escape') { e.preventDefault(); $('#prompt-cancel').click(); }
+    };
+  });
+}
+
+function nwConfirm({ title, message, okLabel = 'OK', danger = false }) {
+  return new Promise((resolve) => {
+    $('#confirm-title').textContent = title || 'Are you sure?';
+    $('#confirm-message').textContent = message || '';
+    const ok = $('#confirm-ok');
+    ok.textContent = okLabel;
+    ok.className = 'btn primary' + (danger ? ' danger' : '');
+    const overlay = $('#confirm-overlay');
+    overlay.classList.add('show');
+    const cleanup = () => {
+      overlay.classList.remove('show');
+      ok.onclick = null;
+      $('#confirm-cancel').onclick = null;
+    };
+    ok.onclick = () => { cleanup(); resolve(true); };
+    $('#confirm-cancel').onclick = () => { cleanup(); resolve(false); };
+  });
+}
+
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (e) {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e2) {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+}
+
+/* ============================================================
+   MODE / TAB SWITCHING
+   ============================================================ */
+
+function setMode(mode) {
+  S.mode = mode;
+  document.getElementById('main').className = 'mode-' + mode;
+  $$('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  if (mode === 'respond') renderRespond();
+  if (mode === 'results') renderResults();
+}
+
+/* ============================================================
+   SETUP TAB — render & interactions
+   ============================================================ */
+
+function newAxis(name = '', options = ['', '']) {
+  return { id: 'a' + Date.now() + '_' + Math.floor(Math.random() * 1e6), name, options: options.slice() };
+}
+
+function ensureMinAxis() {
+  if (S.event.axes.length === 0) {
+    S.event.axes.push(newAxis('Dates', ['Option 1', 'Option 2']));
+  }
+}
+
+function renderSetup() {
+  $('#event-name').value = S.event.name || '';
+  const list = $('#axes-list');
+  list.innerHTML = '';
+
+  S.event.axes.forEach((axis, axIdx) => {
+    const card = el('div', { class: 'axis-card', 'data-idx': axIdx, draggable: 'true' });
+
+    const head = el('div', { class: 'axis-card-head' });
+    head.appendChild(el('span', { class: 'drag-handle', title: 'Drag to reorder' }, '⋮⋮'));
+    const nameInput = el('input', {
+      class: 'input', type: 'text', placeholder: 'Axis name (e.g. Dates)',
+      value: axis.name, maxlength: '60',
+      oninput: (e) => { axis.name = e.target.value; persist(); },
+    });
+    head.appendChild(nameInput);
+    const actions = el('div', { class: 'axis-actions' });
+    actions.appendChild(el('button', {
+      class: 'btn small danger',
+      title: 'Remove axis',
+      onclick: async () => {
+        if (S.event.axes.length === 1) { toast('Need at least one axis', 'error'); return; }
+        const ok = await nwConfirm({
+          title: 'Remove axis?',
+          message: `"${axis.name || 'this axis'}" and its options will be deleted.`,
+          okLabel: 'Remove', danger: true,
+        });
+        if (!ok) return;
+        S.event.axes.splice(axIdx, 1);
+        persist();
+        renderSetup();
+      },
+    }, '✕'));
+    head.appendChild(actions);
+    card.appendChild(head);
+
+    const optsWrap = el('div', { class: 'axis-options' });
+    axis.options.forEach((opt, optIdx) => {
+      const row = el('div', { class: 'axis-opt-row' });
+      row.appendChild(el('input', {
+        class: 'input', type: 'text', placeholder: `Option ${optIdx + 1}`,
+        value: opt, maxlength: '60',
+        oninput: (e) => { axis.options[optIdx] = e.target.value; persist(); },
+      }));
+      row.appendChild(el('button', {
+        class: 'btn icon small',
+        title: 'Remove option',
+        onclick: () => {
+          if (axis.options.length <= 2) { toast('Need at least two options', 'error'); return; }
+          axis.options.splice(optIdx, 1);
+          persist();
+          renderSetup();
+        },
+      }, '✕'));
+      optsWrap.appendChild(row);
+    });
+    card.appendChild(optsWrap);
+
+    const addRow = el('div', { class: 'axis-add-row' });
+    addRow.appendChild(el('button', {
+      class: 'btn small',
+      onclick: () => {
+        if (axis.options.length >= 12) { toast('Maximum 12 options per axis', 'error'); return; }
+        axis.options.push('');
+        persist();
+        renderSetup();
+      },
+    }, '+ Add option'));
+    card.appendChild(addRow);
+
+    // Drag-and-drop reorder
+    card.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', String(axIdx));
+      e.dataTransfer.effectAllowed = 'move';
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', (e) => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const from = parseInt(e.dataTransfer.getData('text/plain'), 10);
+      const to = axIdx;
+      if (Number.isNaN(from) || from === to) return;
+      const [moved] = S.event.axes.splice(from, 1);
+      S.event.axes.splice(to, 0, moved);
+      persist();
+      renderSetup();
+    });
+
+    list.appendChild(card);
+  });
+}
+
+function bindSetup() {
+  $('#event-name').addEventListener('input', (e) => {
+    S.event.name = e.target.value;
+    persist();
+  });
+  $('#add-axis-btn').addEventListener('click', () => {
+    if (S.event.axes.length >= 8) { toast('Maximum 8 axes', 'error'); return; }
+    S.event.axes.push(newAxis('', ['', '']));
+    persist();
+    renderSetup();
+  });
+  $('#gen-link-btn').addEventListener('click', generatePlainLink);
+  $('#gen-enc-btn').addEventListener('click', generateEncryptedLink);
+  $('#reset-btn').addEventListener('click', resetEvent);
+  $('#copy-link-btn').addEventListener('click', async () => {
+    const url = $('#share-result-url').textContent;
+    if (!url) return;
+    if (await copyToClipboard(url)) toast('Link copied');
+    else toast('Copy failed', 'error');
+  });
+  $('#open-link-btn').addEventListener('click', () => {
+    const url = $('#share-result-url').textContent;
+    if (url) window.open(url, '_blank');
+  });
+}
+
+function validateConfig() {
+  const e = S.event;
+  if (!e.name.trim()) return 'Event needs a name.';
+  if (e.axes.length === 0) return 'Add at least one axis.';
+  for (let i = 0; i < e.axes.length; i++) {
+    const ax = e.axes[i];
+    if (!ax.name.trim()) return `Axis ${i + 1} needs a name.`;
+    const opts = ax.options.map(o => o.trim()).filter(Boolean);
+    if (opts.length < 2) return `"${ax.name}" needs at least 2 options.`;
+    if (opts.length > 12) return `"${ax.name}" has too many options (max 12).`;
+  }
+  const total = comboCount(e.axes);
+  if (total > 10000000) return `That's ${total.toLocaleString()} combinations — please reduce options.`;
+  return null;
+}
+
+function snapshotEvent() {
+  // Clean copy with trimmed values, no empty options
+  return {
+    name: S.event.name.trim(),
+    axes: S.event.axes.map((a, i) => ({
+      id: 'a' + i,
+      name: a.name.trim(),
+      options: a.options.map(o => o.trim()).filter(Boolean),
+    })),
+  };
+}
+
+function generatePlainLink() {
+  const err = validateConfig();
+  if (err) { toast(err, 'error'); return; }
+  const clean = snapshotEvent();
+  const base = location.origin + location.pathname;
+  const url = base + '#' + encodeConfig(clean);
+  showShareResult(url, url.length > 2000 ? 'Link is long — try the encrypted version for compactness.' : 'Share this link');
+}
+
+async function generateEncryptedLink() {
+  const err = validateConfig();
+  if (err) { toast(err, 'error'); return; }
+  const passphrase = await nwPrompt({
+    title: 'Encrypted share link',
+    message: 'Choose a passphrase. Anyone you give the link to will need it. Share the passphrase out-of-band.',
+    okLabel: 'Encrypt',
+  });
+  if (passphrase === null) return;
+  if (!passphrase || passphrase.length < 4) { toast('Passphrase too short (min 4 chars)', 'error'); return; }
+  const clean = snapshotEvent();
+  try {
+    const payload = await encryptShare(clean, passphrase);
+    const base = location.origin + location.pathname;
+    const url = base + '#nw_enc:' + payload;
+    showShareResult(url, 'Encrypted link — share the passphrase separately');
+  } catch (e) {
+    toast('Encryption failed', 'error');
+  }
+}
+
+function showShareResult(url, title) {
+  $('#share-result-title').textContent = title;
+  $('#share-result-url').textContent = url;
+  $('#share-result').classList.add('show');
+  S.configWasShared = true;
+}
+
+async function resetEvent() {
+  const ok = await nwConfirm({
+    title: 'Reset everything?',
+    message: 'Clears the current event, your saved scores, and any pasted response codes.',
+    okLabel: 'Reset', danger: true,
+  });
+  if (!ok) return;
+  // Clear all nemawashi keys
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith(STORAGE_PREFIX)) localStorage.removeItem(k);
+  }
+  S.event = { name: '', axes: [] };
+  S.myScores = {};
+  S.responses = [];
+  S.rawCodes = '';
+  S.whatIfExcluded = new Set();
+  ensureMinAxis();
+  history.replaceState(null, '', location.pathname);
+  $('#share-result').classList.remove('show');
+  renderSetup();
+  toast('Reset done');
+}
+
+/* ============================================================
+   RESPOND TAB
+   ============================================================ */
+
+function renderRespond() {
+  const valid = S.event.name && S.event.axes.length > 0;
+  if (!valid) {
+    $('#respond-axes').innerHTML = '';
+    $('#respond-title').textContent = 'No event loaded';
+    return;
+  }
+  $('#respond-title').textContent = S.event.name;
+  $('#my-name').value = S.myName || '';
+  const wrap = $('#respond-axes');
+  wrap.innerHTML = '';
+
+  S.event.axes.forEach((axis, axIdx) => {
+    if (!S.myScores[axIdx]) S.myScores[axIdx] = {};
+    const card = el('div', { class: 'respond-axis' });
+    card.appendChild(el('h3', {}, axis.name));
+    axis.options.forEach((opt, optIdx) => {
+      const score = S.myScores[axIdx][optIdx] ?? 1;
+      const row = el('div', { class: 'score-row s' + score, 'data-ax': axIdx, 'data-opt': optIdx });
+      row.appendChild(el('span', { class: 'opt-name' }, opt));
+      const btns = el('div', { class: 'score-buttons' });
+      [
+        { v: 0, label: '🚫', tip: 'Block' },
+        { v: 1, label: '😐', tip: 'Okay' },
+        { v: 2, label: '👍', tip: 'Like' },
+        { v: 3, label: '❤️', tip: 'Love' },
+      ].forEach(({ v, label, tip }) => {
+        btns.appendChild(el('button', {
+          class: 'score-btn s' + v + (score === v ? ' active' : ''),
+          title: tip,
+          onclick: (e) => { e.stopPropagation(); setScore(axIdx, optIdx, v); },
+        }, label));
+      });
+      row.appendChild(btns);
+      // Tap row to cycle
+      row.addEventListener('click', () => {
+        const cur = S.myScores[axIdx][optIdx] ?? 1;
+        const next = (cur + 1) % 4;
+        setScore(axIdx, optIdx, next);
+      });
+      // Touch swipe
+      let touchX = null;
+      row.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+      row.addEventListener('touchend', (e) => {
+        if (touchX === null) return;
+        const dx = (e.changedTouches[0].clientX) - touchX;
+        touchX = null;
+        if (Math.abs(dx) < 30) return;
+        const cur = S.myScores[axIdx][optIdx] ?? 1;
+        if (dx > 0) {
+          // swipe right = upgrade (1→2→3→0→1)
+          setScore(axIdx, optIdx, (cur + 1) % 4);
+        } else {
+          // swipe left = downgrade
+          setScore(axIdx, optIdx, (cur + 3) % 4);
+        }
+        // prevent the row click handler from firing on top
+        e.preventDefault();
+      });
+      card.appendChild(row);
+    });
+    wrap.appendChild(card);
+  });
+}
+
+function setScore(axIdx, optIdx, value) {
+  if (!S.myScores[axIdx]) S.myScores[axIdx] = {};
+  S.myScores[axIdx][optIdx] = value;
+  persist();
+  // Just update affected row in place
+  const row = document.querySelector(`.score-row[data-ax="${axIdx}"][data-opt="${optIdx}"]`);
+  if (row) {
+    row.className = 'score-row s' + value;
+    row.dataset.ax = axIdx; row.dataset.opt = optIdx;
+    row.querySelectorAll('.score-btn').forEach((b, i) => {
+      b.classList.toggle('active', i === value);
+    });
+  }
+}
+
+function bindRespond() {
+  $('#my-name').addEventListener('input', (e) => {
+    S.myName = e.target.value;
+    persist();
+    try { localStorage.setItem(NAME_KEY, S.myName); } catch (e) {}
+  });
+  $('#gen-resp-btn').addEventListener('click', () => {
+    if (!S.myName.trim()) { toast('Enter your name first', 'error'); return; }
+    if (!S.event.axes.length) { toast('No event loaded', 'error'); return; }
+    const matrix = S.event.axes.map((axis, axIdx) =>
+      axis.options.map((_, optIdx) => S.myScores[axIdx]?.[optIdx] ?? 1)
+    );
+    const code = formatCode(S.myName, matrix);
+    $('#resp-result-code').textContent = code;
+    $('#resp-result').classList.add('show');
+  });
+  $('#copy-resp-btn').addEventListener('click', async () => {
+    const code = $('#resp-result-code').textContent;
+    if (!code) return;
+    if (await copyToClipboard(code)) toast('Response copied — paste it in the group chat');
+    else toast('Copy failed', 'error');
+  });
+}
+
+/* ============================================================
+   RESULTS TAB
+   ============================================================ */
+
+let renderResultsToken = 0;
+
+function renderResults() {
+  $('#codes-input').value = S.rawCodes || '';
+  refreshResults();
+}
+
+let resultsDebounce = null;
+function bindResults() {
+  $('#codes-input').addEventListener('input', (e) => {
+    S.rawCodes = e.target.value;
+    persist();
+    clearTimeout(resultsDebounce);
+    resultsDebounce = setTimeout(refreshResults, 120);
+  });
+  $('#copy-results-btn').addEventListener('click', copyResultsAsText);
+  $('#download-png-btn').addEventListener('click', downloadResultsPng);
+}
+
+function refreshResults() {
+  const { responses, errors } = parseCodes(S.rawCodes || '');
+  S.responses = responses;
+
+  // Validate response shapes against current event
+  const warn = $('#results-warn');
+  const expectedAxes = S.event.axes.length;
+  const expectedLens = S.event.axes.map(a => a.options.length);
+  const mismatches = [];
+  for (const r of responses) {
+    if (r.scores.length !== expectedAxes) { mismatches.push(r.name); continue; }
+    for (let i = 0; i < expectedAxes; i++) {
+      if (r.scores[i].length !== expectedLens[i]) { mismatches.push(r.name); break; }
+    }
+  }
+  const messages = [];
+  if (errors.length) messages.push(`${errors.length} unparseable line${errors.length === 1 ? '' : 's'} (lines ${errors.map(e => e.line).join(', ')})`);
+  if (mismatches.length) messages.push(`Shape mismatch for: ${[...new Set(mismatches)].join(', ')} — these were generated for a different event structure.`);
+  if (messages.length) {
+    warn.textContent = messages.join(' · ');
+    warn.style.display = 'block';
+  } else {
+    warn.style.display = 'none';
+  }
+
+  renderParticipantChips();
+
+  const usable = responses.filter(r => {
+    if (S.whatIfExcluded.has(r.name)) return false;
+    if (r.scores.length !== expectedAxes) return false;
+    for (let i = 0; i < expectedAxes; i++) {
+      if (r.scores[i].length !== expectedLens[i]) return false;
+    }
+    return true;
+  });
+
+  if (usable.length === 0 || expectedAxes === 0) {
+    $('#results-output').innerHTML = '';
+    const empty = el('div', { class: 'empty-state' });
+    if (expectedAxes === 0) {
+      empty.innerHTML = '<strong>No event loaded</strong>Go to Setup to define axes, or open a shared link.';
+    } else {
+      empty.innerHTML = '<strong>No responses yet</strong>Paste response codes on the left to see the winning combination.';
+    }
+    $('#results-output').appendChild(empty);
+    $('#results-actions').style.display = 'none';
+    return;
+  }
+
+  $('#results-actions').style.display = 'flex';
+  computeAndRender(usable);
+}
+
+async function computeAndRender(usable) {
+  const myToken = ++renderResultsToken;
+  const out = $('#results-output');
+  out.innerHTML = '';
+  out.appendChild(el('div', { class: 'empty-state' }, 'Computing…'));
+
+  const { valid, invalid } = await rankCombinations(S.event.axes, usable);
+  if (myToken !== renderResultsToken) return; // stale
+
+  out.innerHTML = '';
+
+  if (valid.length === 0) {
+    out.appendChild(renderDeadlock(invalid, usable));
+  } else {
+    out.appendChild(renderWinner(valid[0]));
+    out.appendChild(renderTopTable(valid.slice(0, 5)));
+  }
+  out.appendChild(renderHeatmaps(usable));
+}
+
+function renderParticipantChips() {
+  const wrap = $('#participant-chips');
+  wrap.innerHTML = '';
+  if (S.responses.length === 0) return;
+  wrap.appendChild(el('div', { style: 'font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.04em;margin-top:6px;' }, `${S.responses.length} participant${S.responses.length === 1 ? '' : 's'}`));
+  S.responses.forEach((r) => {
+    const excluded = S.whatIfExcluded.has(r.name);
+    const chip = el('div', { class: 'pchip' + (excluded ? ' excluded' : '') });
+    const cb = el('input', {
+      type: 'checkbox',
+      checked: !excluded ? 'checked' : false,
+      onchange: () => {
+        if (S.whatIfExcluded.has(r.name)) S.whatIfExcluded.delete(r.name);
+        else S.whatIfExcluded.add(r.name);
+        refreshResults();
+      },
+    });
+    if (!excluded) cb.checked = true;
+    chip.appendChild(cb);
+    chip.appendChild(el('span', { class: 'pname' }, r.name));
+    chip.appendChild(el('button', {
+      class: 'x',
+      title: 'Remove this response',
+      onclick: () => {
+        // Remove from rawCodes by line
+        const lines = (S.rawCodes || '').split(/\r?\n/);
+        const filtered = lines.filter(l => {
+          const p = parseCode(l);
+          return !p || p.name !== r.name;
+        });
+        S.rawCodes = filtered.join('\n');
+        $('#codes-input').value = S.rawCodes;
+        persist();
+        refreshResults();
+      },
+    }, '×'));
+    wrap.appendChild(chip);
+  });
+}
+
+function renderWinner(top) {
+  const card = el('div', { class: 'winner-card' });
+  card.appendChild(el('h3', {}, '✨ Best combination'));
+  const axesWrap = el('div', { class: 'winner-axes' });
+  S.event.axes.forEach((axis, i) => {
+    const ax = el('div', { class: 'winner-axis' });
+    ax.appendChild(el('span', { class: 'ax-name' }, axis.name));
+    ax.appendChild(el('span', { class: 'ax-pick' }, axis.options[top.combo[i]] || ''));
+    axesWrap.appendChild(ax);
+  });
+  card.appendChild(axesWrap);
+  const stats = el('div', { class: 'winner-stats' });
+  stats.appendChild(el('span', {}, `Total satisfaction: ${top.total}`));
+  stats.appendChild(el('span', {}, `Fairness floor: ${top.min}`));
+  card.appendChild(stats);
+  return card;
+}
+
+function renderTopTable(top) {
+  const wrap = el('div', { class: 'top-table' });
+  wrap.appendChild(el('h3', {}, 'Top combinations'));
+  const table = el('table');
+  const thead = el('thead');
+  const headRow = el('tr');
+  headRow.appendChild(el('th', { class: 'rank' }, '#'));
+  S.event.axes.forEach(a => headRow.appendChild(el('th', {}, a.name)));
+  headRow.appendChild(el('th', { class: 'score' }, 'Total'));
+  headRow.appendChild(el('th', { class: 'min' }, 'Min'));
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+  const tbody = el('tbody');
+  top.forEach((row, i) => {
+    const tr = el('tr');
+    tr.appendChild(el('td', { class: 'rank' }, String(i + 1)));
+    S.event.axes.forEach((axis, axIdx) => {
+      tr.appendChild(el('td', {}, axis.options[row.combo[axIdx]] || ''));
+    });
+    tr.appendChild(el('td', { class: 'score' }, String(row.total)));
+    tr.appendChild(el('td', { class: 'min' }, String(row.min)));
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  return wrap;
+}
+
+function renderHeatmaps(usable) {
+  const wrap = el('div');
+  S.event.axes.forEach((axis, axIdx) => {
+    const block = el('div', { class: 'heatmap-wrap' });
+    block.appendChild(el('h3', {}, axis.name));
+    block.appendChild(el('div', { class: 'axis-label' }, `${usable.length} participant${usable.length === 1 ? '' : 's'} · ${axis.options.length} option${axis.options.length === 1 ? '' : 's'}`));
+    const grid = el('div', { class: 'heatmap' });
+    const cols = axis.options.length + 1;
+    grid.style.gridTemplateColumns = `120px repeat(${axis.options.length}, minmax(60px, 1fr))`;
+
+    grid.appendChild(el('div', { class: 'hm-cell hm-head' }, ''));
+    axis.options.forEach(opt => grid.appendChild(el('div', { class: 'hm-cell hm-head', title: opt }, opt)));
+
+    usable.forEach(r => {
+      grid.appendChild(el('div', { class: 'hm-cell hm-name', title: r.name }, r.name));
+      axis.options.forEach((_, optIdx) => {
+        const v = scoreFor(r.scores[axIdx], optIdx);
+        const cell = el('div', { class: 'hm-cell s' + v, title: `${r.name}: ${['Block','Okay','Like','Love'][v]}` });
+        cell.textContent = ['','','+','★'][v] || '';
+        grid.appendChild(cell);
+      });
+    });
+    block.appendChild(grid);
+    wrap.appendChild(block);
+  });
+  return wrap;
+}
+
+function renderDeadlock(invalid, usable) {
+  const wrap = el('div', { class: 'deadlock' });
+  wrap.appendChild(el('h3', {}, '🚫 No valid combination'));
+  wrap.appendChild(el('p', { style: 'margin:4px 0;font-size:13px;color:#6b1717;' },
+    'Every possible combination is blocked by at least one participant. Here are the closest-to-consensus options:'));
+
+  const top = invalid.slice(0, 3);
+  top.forEach((row, i) => {
+    const sel = S.event.axes.map((a, ax) => `${a.name}: ${a.options[row.combo[ax]]}`).join(' · ');
+    const sug = el('div', { class: 'deadlock-suggest' });
+    sug.innerHTML = `<strong>Option ${i + 1}:</strong> ${sel} — blocked by `;
+    const blockers = row.vetoes.map(v => `${v.name} on "${S.event.axes[v.axis].options[v.optIdx]}"`);
+    sug.appendChild(document.createTextNode(blockers.join(', ')));
+    wrap.appendChild(sug);
+  });
+
+  // Flex suggestions: which single person flexing on which option unblocks the most
+  const flexWins = new Map(); // key = "name|axis|optIdx" → count of combos unlocked
+  invalid.forEach(row => {
+    if (row.vetoCount === 1) {
+      const v = row.vetoes[0];
+      const k = `${v.name}|${v.axis}|${v.optIdx}`;
+      flexWins.set(k, (flexWins.get(k) || 0) + 1);
+    }
+  });
+  if (flexWins.size > 0) {
+    const sorted = [...flexWins.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+    wrap.appendChild(el('p', { style: 'margin-top:10px;font-size:12px;color:#6b1717;text-transform:uppercase;letter-spacing:0.04em;font-weight:600;' }, 'Flex suggestions'));
+    sorted.forEach(([k, count]) => {
+      const [name, axStr, optStr] = k.split('|');
+      const ax = parseInt(axStr, 10), oi = parseInt(optStr, 10);
+      const sug = el('div', { class: 'deadlock-suggest' });
+      sug.textContent = `If ${name} could flex on "${S.event.axes[ax].options[oi]}" (${S.event.axes[ax].name}), ${count} combination${count === 1 ? '' : 's'} unlock${count === 1 ? 's' : ''}.`;
+      wrap.appendChild(sug);
+    });
+  }
+  return wrap;
+}
+
+/* ============================================================
+   EXPORT
+   ============================================================ */
+
+function buildResultsText() {
+  const usable = S.responses.filter(r => !S.whatIfExcluded.has(r.name));
+  const lines = [];
+  lines.push(`📋 ${S.event.name}`);
+  lines.push(`${usable.length} participant${usable.length === 1 ? '' : 's'}: ${usable.map(r => r.name).join(', ')}`);
+  lines.push('');
+
+  // Quick synchronous compute (no yield) — fine for export
+  const { valid, invalid } = synchronousRank(S.event.axes, usable);
+  if (valid.length === 0) {
+    lines.push('🚫 No valid combination — at least one veto blocks every possible combination.');
+  } else {
+    const top = valid[0];
+    lines.push('✨ BEST COMBINATION');
+    S.event.axes.forEach((a, i) => lines.push(`  ${a.name}: ${a.options[top.combo[i]]}`));
+    lines.push(`  → Total satisfaction: ${top.total} · Fairness floor: ${top.min}`);
+    if (valid.length > 1) {
+      lines.push('');
+      lines.push('Top 5:');
+      valid.slice(0, 5).forEach((r, i) => {
+        const sel = S.event.axes.map((a, ax) => a.options[r.combo[ax]]).join(' · ');
+        lines.push(`  ${i + 1}. ${sel}  (${r.total}/${r.min})`);
+      });
+    }
+  }
+  lines.push('');
+  lines.push('— Made with Nemawashi · https://naklitechie.github.io/Nemawashi/');
+  return lines.join('\n');
+}
+
+function synchronousRank(axes, responses) {
+  const valid = [], invalid = [];
+  for (const combo of combinations(axes)) {
+    const vetoes = vetoesOf(combo, responses);
+    if (vetoes.length === 0) valid.push({ combo: combo.slice(), ...scoreCombo(combo, responses) });
+    else invalid.push({ combo: combo.slice(), vetoes, vetoCount: vetoes.length });
+  }
+  valid.sort((a, b) => b.total - a.total || b.min - a.min);
+  return { valid, invalid };
+}
+
+async function copyResultsAsText() {
+  const text = buildResultsText();
+  if (await copyToClipboard(text)) toast('Results copied');
+  else toast('Copy failed', 'error');
+}
+
+// Lazy CDN loader (CONV.md pattern)
+let _h2c = null;
+function loadHtml2Canvas() {
+  if (_h2c) return Promise.resolve(_h2c);
+  if (window.html2canvas) { _h2c = window.html2canvas; return Promise.resolve(_h2c); }
+  return new Promise(resolve => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    s.onload = () => { _h2c = window.html2canvas; resolve(_h2c); };
+    s.onerror = () => resolve(null);
+    document.head.appendChild(s);
+  });
+}
+
+async function downloadResultsPng() {
+  const target = $('#results-output');
+  if (!target || !target.firstChild) { toast('Nothing to export', 'error'); return; }
+  toast('Loading exporter…');
+  const h2c = await loadHtml2Canvas();
+  if (!h2c) { toast('PNG export unavailable (offline?)', 'error'); return; }
+  try {
+    const canvas = await h2c(target, { backgroundColor: '#fafaf9', scale: 2 });
+    const url = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nemawashi-${(S.event.name || 'event').replace(/[^a-z0-9]+/gi, '_')}.png`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast('PNG downloaded');
+  } catch (e) {
+    toast('Export failed', 'error');
+  }
+}
+
+/* ============================================================
+   INIT — load from hash, wire everything
+   ============================================================ */
+
+async function loadFromHash() {
+  const h = location.hash.slice(1);
+  if (!h) return false;
+
+  // Encrypted variant
+  if (h.startsWith('nw_enc:')) {
+    const payload = h.slice(7);
+    const passphrase = await nwPrompt({
+      title: 'Encrypted event link',
+      message: 'This event was shared encrypted. Enter the passphrase to open it.',
+      okLabel: 'Decrypt',
+    });
+    if (passphrase === null) return false;
+    try {
+      const data = await decryptShare(payload, passphrase);
+      if (!data || !data.axes) throw new Error('bad');
+      S.event = { name: data.name || '', axes: data.axes.map((a, i) => ({ id: 'a' + i, name: a.name || '', options: a.options || [] })) };
+      S.fromHash = true;
+      return true;
+    } catch (e) {
+      toast('Wrong passphrase or corrupt link', 'error');
+      return false;
+    }
+  }
+
+  // Plain variant
+  if (h.includes('e=') || h.includes('a=')) {
+    try {
+      const data = decodeConfig(h);
+      if (!data.axes.length) return false;
+      S.event = data;
+      S.fromHash = true;
+      return true;
+    } catch (e) { return false; }
+  }
+  return false;
+}
+
+function bindModals() {
+  // Intro
+  const introSeen = (() => { try { return localStorage.getItem(INTRO_KEY) === '1'; } catch (e) { return false; } })();
+  if (!introSeen) {
+    $('#intro-overlay').classList.add('show');
+  }
+  $('#intro-ok-btn').addEventListener('click', () => {
+    $('#intro-overlay').classList.remove('show');
+    try { localStorage.setItem(INTRO_KEY, '1'); } catch (e) {}
+  });
+  $('#intro-readme-btn').addEventListener('click', () => {
+    window.open('https://github.com/NakliTechie/Nemawashi#readme', '_blank');
+    $('#intro-overlay').classList.remove('show');
+    try { localStorage.setItem(INTRO_KEY, '1'); } catch (e) {}
+  });
+
+  // Help
+  $('#help-btn').addEventListener('click', () => $('#help-overlay').classList.add('show'));
+  $('#help-ok-btn').addEventListener('click', () => $('#help-overlay').classList.remove('show'));
+  $('#help-tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const tab = b.dataset.tab;
+    $$('#help-tabs button').forEach(x => x.classList.toggle('active', x === b));
+    $$('#help-overlay .modal-tab-content').forEach(c => c.classList.toggle('active', c.dataset.tab === tab));
+  });
+
+  // Backdrop click closes any overlay (except prompt/confirm — those force a choice)
+  ['intro-overlay', 'help-overlay'].forEach(id => {
+    $('#' + id).addEventListener('click', (e) => {
+      if (e.target.id === id) e.currentTarget.classList.remove('show');
+    });
+  });
+
+  // Escape closes
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    ['intro-overlay', 'help-overlay'].forEach(id => $('#' + id).classList.remove('show'));
+  });
+}
+
+function bindTabs() {
+  $$('.tabs button').forEach(b => {
+    b.addEventListener('click', () => setMode(b.dataset.mode));
+  });
+}
+
+async function init() {
+  bindModals();
+  bindTabs();
+  bindSetup();
+  bindRespond();
+  bindResults();
+
+  // Try shared hash first
+  const fromHash = await loadFromHash();
+
+  if (fromHash) {
+    // Load any cached scores/codes for this event
+    const cached = loadFor(S.event);
+    if (cached) {
+      S.myName = cached.myName || '';
+      S.myScores = cached.myScores || {};
+      S.rawCodes = cached.rawCodes || '';
+    }
+    if (!S.myName) {
+      try { S.myName = localStorage.getItem(NAME_KEY) || ''; } catch (e) {}
+    }
+    setMode('respond');
+  } else {
+    // Try restoring last-edited event from localStorage (most recent key)
+    let restored = null;
+    try {
+      let mostRecent = null;
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(STORAGE_PREFIX)) { mostRecent = k; }
+      }
+      if (mostRecent) {
+        const raw = localStorage.getItem(mostRecent);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.event && parsed.event.axes && parsed.event.axes.length) {
+            S.event = parsed.event;
+            S.myScores = parsed.myScores || {};
+            S.myName = parsed.myName || '';
+            S.rawCodes = parsed.rawCodes || '';
+            restored = true;
+          }
+        }
+      }
+    } catch (e) {}
+    if (!restored) ensureMinAxis();
+    setMode('setup');
+  }
+
+  renderSetup();
+}
+
+// Re-run hash detection if the URL hash changes mid-session
+window.addEventListener('hashchange', async () => {
+  if (!location.hash) return;
+  const ok = await loadFromHash();
+  if (ok) {
+    const cached = loadFor(S.event);
+    if (cached) {
+      S.myName = cached.myName || S.myName;
+      S.myScores = cached.myScores || {};
+      S.rawCodes = cached.rawCodes || '';
+    }
+    setMode('respond');
+    renderSetup();
+  }
+});
+
+// Kick off after DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
