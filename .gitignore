@@ -6,3 +6,10 @@
 !screenshots/
 !screenshots/*.png
 !screenshots/*.jpg
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
