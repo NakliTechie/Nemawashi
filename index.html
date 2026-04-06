@@ -510,6 +510,110 @@
   .footer-nav a { color: var(--brand); text-decoration: none; font-weight: 500; }
   .footer-nav a:hover { color: var(--accent); }
 
+  /* ================= Event pills (top of Setup) ================= */
+  .event-pills {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 0 0 12px 0;
+    margin: -4px 0 14px 0;
+    border-bottom: 1px solid var(--line);
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+  .event-pills[hidden] { display: none; }
+  .event-pills::-webkit-scrollbar { height: 6px; }
+  .event-pills::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
+  .event-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .event-pill:hover {
+    background: var(--brand-light);
+    border-color: var(--brand);
+  }
+  .event-pill.current {
+    background: var(--brand);
+    color: white;
+    border-color: var(--brand);
+    font-weight: 600;
+  }
+  .event-pill.current:hover { background: var(--brand-dark); }
+  .event-pill .star { font-size: 11px; color: var(--accent); }
+  .event-pill.current .star { color: #fef9c3; }
+  .event-pill .pill-x {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    opacity: 0.5;
+    font-size: 14px;
+    padding: 0 2px;
+    margin-left: 2px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .event-pill .pill-x:hover { opacity: 1; color: var(--accent); }
+  .event-pill.current .pill-x:hover { color: white; }
+  .event-pill.new-pill {
+    background: transparent;
+    border: 1px dashed var(--line-strong);
+    color: var(--brand);
+    font-weight: 500;
+  }
+  .event-pill.new-pill:hover {
+    border-color: var(--brand);
+    border-style: solid;
+    background: var(--brand-light);
+  }
+
+  /* ================= Non-owner banner ================= */
+  .non-owner-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--brand-light);
+    border: 1px solid var(--brand);
+    border-left: 4px solid var(--brand);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: var(--brand-dark);
+    line-height: 1.45;
+  }
+  .non-owner-banner[hidden] { display: none; }
+  .nob-icon { font-size: 18px; flex-shrink: 0; }
+  .nob-text { flex: 1; }
+  .nob-text strong { color: var(--brand); }
+  .nob-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .nob-close {
+    background: transparent;
+    border: 0;
+    color: var(--brand);
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0 6px;
+    line-height: 1;
+  }
+  .nob-close:hover { color: var(--accent); }
+  @media (max-width: 600px) {
+    .non-owner-banner { flex-wrap: wrap; }
+    .nob-text { flex-basis: calc(100% - 30px); }
+    .nob-actions { flex-basis: 100%; justify-content: flex-end; }
+  }
+
   /* ================= Guide page ================= */
   .panel.guide {
     padding-bottom: 40px;
@@ -700,6 +804,7 @@
 
   <!-- ============ SETUP PANEL ============ -->
   <section class="panel setup">
+    <div class="event-pills" id="event-pills" hidden></div>
     <h2>Create a decision</h2>
     <p class="lead">Define what needs deciding. Add as many axes as you need — dates, location, hotel tier, meal plan. Each axis gets 2–10 options.</p>
 
@@ -732,6 +837,15 @@
   <section class="panel respond">
     <h2 id="respond-title">Score the options</h2>
     <p class="lead">Tap each option to cycle: Okay → Like → Love → Block → Okay. Default is Okay — you only need to mark what you care about.</p>
+
+    <div class="non-owner-banner" id="non-owner-banner" hidden>
+      <span class="nob-icon">📨</span>
+      <span class="nob-text" id="nob-text"></span>
+      <span class="nob-actions">
+        <button class="btn small accent" id="nob-tally-btn">Tally it here</button>
+        <button class="nob-close" id="nob-close" aria-label="Dismiss">×</button>
+      </span>
+    </div>
 
     <div class="respond-name-row">
       <div class="field" style="margin: 0;">
@@ -1020,12 +1134,16 @@ const S = {
   configWasShared: false,
   fromHash: false,       // true if loaded via shared link
   introSeen: false,
+  // Session-only banner state for non-owner participants who tap response links.
+  // Cleared on reload — informational, no need to nag across sessions.
+  sessionBanner: { responses: [], dismissed: false },
 };
 window.S = S;            // expose for tests.html
 
 const STORAGE_PREFIX = 'nemawashi:';
 const DRAFT_KEY = 'nemawashi:__draft';
 const LAST_EVENT_KEY = 'nemawashi.lastEventKey';
+const OWNER_KEY_PREFIX = 'nemawashi.owner.';
 const INTRO_KEY = 'nemawashi.introSeen';
 const NAME_KEY = 'nemawashi.lastName';
 
@@ -1059,6 +1177,32 @@ function eventId(event) {
   }));
 }
 window.eventId = eventId;
+
+// ---- Owner / tallier detection ----
+// "Owner" = this browser created the event (clicked Generate Link). Set in
+// localStorage as nemawashi.owner.<salt>.
+// "Tallier" = either the owner OR has accumulated rawCodes already (heuristic
+// for cross-device organisers who promoted themselves via "Tally here").
+function markAsOwner(salt) {
+  if (!salt) return;
+  try { localStorage.setItem(OWNER_KEY_PREFIX + salt, '1'); } catch (e) {}
+}
+window.markAsOwner = markAsOwner;
+
+function isOwner(salt) {
+  if (!salt) return false;
+  try { return localStorage.getItem(OWNER_KEY_PREFIX + salt) === '1'; } catch (e) { return false; }
+}
+window.isOwner = isOwner;
+
+function isTallier(eventObj) {
+  if (!eventObj) return false;
+  if (eventObj.salt && isOwner(eventObj.salt)) return true;
+  // Behavioural fallback: if we already have responses in our pasted codes,
+  // we're acting as a tallier — keep doing so.
+  return !!(S.rawCodes && S.rawCodes.trim().length > 0);
+}
+window.isTallier = isTallier;
 
 // ---- Plain config encoding ----
 // Format: [s=<salt>&]e=<name>&a=<axisName>:<o1>,<o2>|<axisName>:<o1>,<o2>...
@@ -1322,6 +1466,53 @@ function loadFor(event) {
   } catch (e) { return null; }
 }
 
+// List all stored events (excluding the unsaved __draft slot).
+// Returns: [{ salt, name, isOwner, isCurrent }] sorted by current → owner → name
+function listStoredEvents() {
+  const events = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith(STORAGE_PREFIX) || k === DRAFT_KEY) continue;
+      try {
+        const parsed = JSON.parse(localStorage.getItem(k));
+        if (!parsed || !parsed.event || !parsed.event.salt) continue;
+        events.push({
+          salt: parsed.event.salt,
+          name: (parsed.event.name || '').trim() || '(unnamed)',
+          isOwner: isOwner(parsed.event.salt),
+          isCurrent: !!(S.event && S.event.salt === parsed.event.salt),
+        });
+      } catch (e) {}
+    }
+  } catch (e) {}
+  events.sort((a, b) => {
+    if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1;
+    if (a.isOwner !== b.isOwner) return a.isOwner ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+  return events;
+}
+window.listStoredEvents = listStoredEvents;
+
+// Is the current S.event a non-empty draft (would be lost on switch)?
+function currentDraftIsDirty() {
+  if (!S.event || S.event.salt) return false;
+  if (S.event.name && S.event.name.trim()) return true;
+  if (S.event.axes && S.event.axes.some(a =>
+    (a.name && a.name.trim()) || (a.options && a.options.some(o => o && o.trim()))
+  )) return true;
+  return false;
+}
+
+function cleanResponseHash() {
+  if (!S.event || (!S.event.salt && !S.event.name)) return;
+  try {
+    const cleanUrl = location.pathname + '#' + encodeConfig(snapshotEvent());
+    history.replaceState(null, '', cleanUrl);
+  } catch (e) {}
+}
+
 /* ============================================================
    DOM HELPERS
    ============================================================ */
@@ -1462,6 +1653,7 @@ function ensureMinAxis() {
 }
 
 function renderSetup() {
+  renderEventPills();
   $('#event-name').value = S.event.name || '';
   const list = $('#axes-list');
   list.innerHTML = '';
@@ -1628,10 +1820,12 @@ function generatePlainLink() {
   const err = validateConfig();
   if (err) { toast(err, 'error'); return; }
   ensureSalt();
+  markAsOwner(S.event.salt);
   const clean = snapshotEvent();
   const base = location.origin + location.pathname;
   const url = base + '#' + encodeConfig(clean);
   showShareResult(url, url.length > 2000 ? 'Link is long — try the encrypted version for compactness.' : 'Share this link');
+  renderEventPills();
 }
 
 async function generateEncryptedLink() {
@@ -1645,12 +1839,14 @@ async function generateEncryptedLink() {
   if (passphrase === null) return;
   if (!passphrase || passphrase.length < 4) { toast('Passphrase too short (min 4 chars)', 'error'); return; }
   ensureSalt();
+  markAsOwner(S.event.salt);
   const clean = snapshotEvent();
   try {
     const payload = await encryptShare(clean, passphrase);
     const base = location.origin + location.pathname;
     const url = base + '#nw_enc:' + payload;
     showShareResult(url, 'Encrypted link — share the passphrase separately');
+    renderEventPills();
   } catch (e) {
     toast('Encryption failed', 'error');
   }
@@ -1693,6 +1889,7 @@ async function resetEvent() {
    ============================================================ */
 
 function renderRespond() {
+  renderNonOwnerBanner();
   const valid = S.event.name && S.event.axes.length > 0;
   if (!valid) {
     $('#respond-axes').innerHTML = '';
@@ -1770,6 +1967,180 @@ function setScore(axIdx, optIdx, value) {
       b.classList.toggle('active', i === value);
     });
   }
+}
+
+// ---- Non-owner banner ----
+function showResponseBanner(parsed) {
+  if (!parsed) return;
+  // Replace any earlier entry from the same name
+  S.sessionBanner.responses = S.sessionBanner.responses.filter(r => r.name !== parsed.name);
+  S.sessionBanner.responses.push(parsed);
+  S.sessionBanner.dismissed = false;
+  renderNonOwnerBanner();
+}
+
+function renderNonOwnerBanner() {
+  const banner = $('#non-owner-banner');
+  if (!banner) return;
+  if (S.sessionBanner.dismissed || S.sessionBanner.responses.length === 0) {
+    banner.hidden = true;
+    return;
+  }
+  const names = S.sessionBanner.responses.map(r => r.name);
+  let nameStr;
+  if (names.length === 1) nameStr = names[0];
+  else if (names.length === 2) nameStr = `${names[0]} and ${names[1]}`;
+  else nameStr = `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+  const verb = names.length === 1 ? 'has' : 'have';
+  $('#nob-text').innerHTML = `<strong>${escapeHtml(nameStr)}</strong> ${verb} responded to this event. The organiser tallies responses — you don't need to.`;
+  banner.hidden = false;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function bindNonOwnerBanner() {
+  const closeBtn = $('#nob-close');
+  if (closeBtn) closeBtn.addEventListener('click', () => {
+    S.sessionBanner.dismissed = true;
+    renderNonOwnerBanner();
+  });
+  const tallyBtn = $('#nob-tally-btn');
+  if (tallyBtn) tallyBtn.addEventListener('click', () => {
+    if (S.event && S.event.salt) markAsOwner(S.event.salt);
+    const count = S.sessionBanner.responses.length;
+    for (const r of S.sessionBanner.responses) {
+      ingestResponse(r);
+    }
+    S.sessionBanner.responses = [];
+    S.sessionBanner.dismissed = false;
+    renderNonOwnerBanner();
+    renderEventPills();
+    toast(`Tallying here now — ${count} response${count === 1 ? '' : 's'} added`);
+    setMode('results');
+  });
+}
+
+// ---- Multi-event switching ----
+function switchToEvent(salt) {
+  if (currentDraftIsDirty()) {
+    nwConfirm({
+      title: 'Discard unsaved draft?',
+      message: 'You have a new event in progress that hasn\u2019t been shared yet. Switching will lose it.',
+      okLabel: 'Discard', danger: true,
+    }).then(ok => { if (ok) doSwitchToEvent(salt); });
+    return;
+  }
+  doSwitchToEvent(salt);
+}
+
+function doSwitchToEvent(salt) {
+  try {
+    const raw = localStorage.getItem(STORAGE_PREFIX + salt);
+    if (!raw) { toast('Event not found', 'error'); return; }
+    const parsed = JSON.parse(raw);
+    S.event = parsed.event;
+    S.myName = parsed.myName || '';
+    S.myScores = parsed.myScores || {};
+    S.rawCodes = parsed.rawCodes || '';
+    S.whatIfExcluded = new Set();
+    S.sessionBanner = { responses: [], dismissed: false };
+    try { localStorage.setItem(LAST_EVENT_KEY, STORAGE_PREFIX + salt); } catch (e) {}
+    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+    $('#share-result').classList.remove('show');
+    renderSetup();
+    renderEventPills();
+    setMode('setup');
+    toast(`Switched to "${parsed.event.name || '(unnamed)'}"`);
+  } catch (e) {
+    toast('Failed to load event', 'error');
+  }
+}
+
+function newEventDraft() {
+  if (currentDraftIsDirty()) {
+    nwConfirm({
+      title: 'Discard unsaved draft?',
+      message: 'You have a new event in progress that hasn\u2019t been shared yet. Starting another will lose it.',
+      okLabel: 'Discard', danger: true,
+    }).then(ok => { if (ok) doNewEventDraft(); });
+    return;
+  }
+  doNewEventDraft();
+}
+
+function doNewEventDraft() {
+  S.event = { name: '', axes: [] };
+  S.myName = '';
+  S.myScores = {};
+  S.rawCodes = '';
+  S.whatIfExcluded = new Set();
+  S.sessionBanner = { responses: [], dismissed: false };
+  ensureMinAxis();
+  try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+  try { localStorage.removeItem(LAST_EVENT_KEY); } catch (e) {}
+  $('#share-result').classList.remove('show');
+  persist();
+  renderSetup();
+  renderEventPills();
+  setMode('setup');
+  toast('New event');
+}
+
+async function deleteStoredEvent(salt, name) {
+  const ok = await nwConfirm({
+    title: 'Delete this event?',
+    message: `"${name || '(unnamed)'}" and any responses you've collected will be removed from this device. This cannot be undone.`,
+    okLabel: 'Delete', danger: true,
+  });
+  if (!ok) return;
+  try {
+    localStorage.removeItem(STORAGE_PREFIX + salt);
+    localStorage.removeItem(OWNER_KEY_PREFIX + salt);
+  } catch (e) {}
+  if (S.event && S.event.salt === salt) {
+    // Just deleted the current event — fall back to a fresh draft
+    doNewEventDraft();
+  } else {
+    renderEventPills();
+  }
+  toast('Event deleted');
+}
+
+function renderEventPills() {
+  const wrap = $('#event-pills');
+  if (!wrap) return;
+  const events = listStoredEvents();
+  // Hide bar entirely if there's nothing to switch to AND we're already on an empty draft
+  if (events.length === 0 && !currentDraftIsDirty() && !S.event.salt) {
+    wrap.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  wrap.innerHTML = '';
+  for (const ev of events) {
+    const pill = el('div', { class: 'event-pill' + (ev.isCurrent ? ' current' : '') });
+    if (ev.isOwner) pill.appendChild(el('span', { class: 'star' }, '\u2605'));
+    pill.appendChild(el('span', {}, ev.name));
+    pill.appendChild(el('button', {
+      class: 'pill-x',
+      title: 'Delete this event',
+      onclick: (e) => { e.stopPropagation(); deleteStoredEvent(ev.salt, ev.name); },
+    }, '\u00d7'));
+    if (!ev.isCurrent) {
+      pill.addEventListener('click', () => switchToEvent(ev.salt));
+    }
+    wrap.appendChild(pill);
+  }
+  const newPill = el('div', {
+    class: 'event-pill new-pill',
+    onclick: () => newEventDraft(),
+  });
+  newPill.appendChild(el('span', {}, '+ New event'));
+  wrap.appendChild(newPill);
 }
 
 function bindRespond() {
@@ -2288,6 +2659,7 @@ async function init() {
   bindRespond();
   bindResults();
   bindGuide();
+  bindNonOwnerBanner();
 
   // Restore the last-touched event from localStorage. Preference order:
   //   1. nemawashi.lastEventKey pointer (most reliable)
@@ -2346,20 +2718,35 @@ async function init() {
     if (!S.myName) {
       try { S.myName = localStorage.getItem(NAME_KEY) || ''; } catch (e) {}
     }
+    persist(); // ensure the new event lands in storage under its salt
     if (result.response) {
-      // URL bundles event + response → ingest and jump to results
-      ingestResponse(result.response);
-      toast(`Response from ${result.response.name} added`);
-      setMode('results');
+      // URL bundles event + response → ingest if we're a tallier, else show banner
+      if (isTallier(S.event)) {
+        ingestResponse(result.response);
+        toast(`Response from ${result.response.name} added`);
+        cleanResponseHash();
+        setMode('results');
+      } else {
+        showResponseBanner(result.response);
+        cleanResponseHash();
+        setMode('respond');
+      }
     } else {
       setMode('respond');
     }
   } else if (result.kind === 'response-only') {
     // No event in URL — try to ingest into the locally-stored event
     if (restoreFromStorage()) {
-      ingestResponse(result.response);
-      toast(`Response from ${result.response.name} added`);
-      setMode('results');
+      if (isTallier(S.event)) {
+        ingestResponse(result.response);
+        toast(`Response from ${result.response.name} added`);
+        cleanResponseHash();
+        setMode('results');
+      } else {
+        showResponseBanner(result.response);
+        cleanResponseHash();
+        setMode('respond');
+      }
     } else {
       ensureMinAxis();
       setMode('setup');
@@ -2389,19 +2776,34 @@ window.addEventListener('hashchange', async () => {
       S.myScores = cached.myScores || {};
       S.rawCodes = cached.rawCodes || '';
     }
+    persist();
     if (result.response) {
-      ingestResponse(result.response);
-      toast(`Response from ${result.response.name} added`);
-      setMode('results');
+      if (isTallier(S.event)) {
+        ingestResponse(result.response);
+        toast(`Response from ${result.response.name} added`);
+        cleanResponseHash();
+        setMode('results');
+      } else {
+        showResponseBanner(result.response);
+        cleanResponseHash();
+        setMode('respond');
+      }
     } else {
       setMode('respond');
     }
     renderSetup();
   } else if (result.kind === 'response-only') {
     if (S.event && S.event.axes && S.event.axes.length) {
-      ingestResponse(result.response);
-      toast(`Response from ${result.response.name} added`);
-      setMode('results');
+      if (isTallier(S.event)) {
+        ingestResponse(result.response);
+        toast(`Response from ${result.response.name} added`);
+        cleanResponseHash();
+        setMode('results');
+      } else {
+        showResponseBanner(result.response);
+        cleanResponseHash();
+        setMode('respond');
+      }
     } else {
       toast('No event loaded — open the event link first', 'error');
     }
