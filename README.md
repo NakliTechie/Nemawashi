@@ -25,9 +25,11 @@ The current workflow is a WhatsApp thread with 47 messages, three spreadsheets n
 
 The trick is that **the group chat is the transport layer**. Nemawashi never sees any data in transit — it's just a calculator that runs in the browser.
 
-1. **Setup** — organiser defines axes and options, clicks *Generate share link*. The whole config gets URL-encoded into the hash fragment (which browsers never send to servers). Paste the link into WhatsApp / Slack / email.
-2. **Respond** — each participant clicks the link. The page auto-switches to scoring mode. They tap to score each option, click *Generate response code*, get a compact string like `NW:Ravi:3,1,0|2,1,1|3,1,1`. They paste it back into the group chat.
-3. **Results** — organiser pastes all the codes (one per line) into the Results tab. Heatmap of every score, ranked top combinations, the winning combo prominently shown.
+1. **Setup** — organiser defines axes and options, clicks *Generate share link*. The whole config gets URL-encoded into the hash fragment (which browsers never send to servers). Send the link into WhatsApp / Slack / email.
+2. **Respond** — each participant clicks the link. The page auto-switches to scoring mode. They tap to score each option, click *Generate share-back link*, get a URL bundling both the event and their scores. They send *that link* back into the chat.
+3. **Results** — organiser clicks each share-back link as it arrives in chat. Each click auto-merges that response into the results. No copy-paste-debug. The winning combination, top-5 ranked alternatives, and per-axis heatmaps appear immediately.
+
+(There's also a fallback "plain code" path for the encrypted-event variant or for power users who'd rather paste `NW:Ravi:3,1,0|2,1,1|3,1,1` directly into the textarea. The textarea on the Results tab still works exactly as before.)
 
 For sensitive events, *Encrypted link…* gives you an AES-256-GCM (PBKDF2 200K) variant. Share the passphrase out-of-band.
 
@@ -43,13 +45,13 @@ For sensitive events, *Encrypted link…* gives you an AES-256-GCM (PBKDF2 200K)
 - Tap each option to cycle Okay → Like → Love → Block
 - Mobile: swipe right/left to upgrade/downgrade
 - Default = Okay, so participants only need to mark what they care about
-- Compact response code, copy-on-click, paste-into-chat ready
+- One-click *Generate share-back link* — produces a URL bundling event + response (~250 chars total). Send back into chat. Plain `NW:Name:scores` code available as a fallback.
 
 **Results**
-- Bulk-paste codes (one per line), parses incrementally
+- Click share-back links from chat → auto-merge into results (one click per participant, no copy-paste). Bulk-paste codes also supported as a fallback
 - Per-axis heatmaps: rows = participants, columns = options, colour-coded by score
 - Top-5 combinations table with total score + fairness floor
-- **Winning combination card** — the answer, large and obvious
+- **Winning combination card** — the answer, large and obvious, with a 決 hanko stamp
 - **What-if mode**: toggle participants in / out, ranking updates instantly
 - **Deadlock view**: when no combination is valid, surfaces the closest-to-consensus options *and* "if X could flex on Y" suggestions
 - **Export**: copy as text (paste-back into chat), download as PNG (lazy-loads `html2canvas` from CDN)
