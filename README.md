@@ -2,6 +2,8 @@
 
 **Multi-axis group consensus.** Single-HTML-file decision tool for the messy real-world case where "where should we go for the retreat?" is actually four questions tangled together.
 
+> **Live: [nemawashi.naklitechie.com](https://nemawashi.naklitechie.com/)**
+
 > *Named after 根回し — the Japanese practice of building informal consensus before a formal decision. Literally "going around the roots."*
 
 ## The problem
