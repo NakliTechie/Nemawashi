@@ -41,6 +41,7 @@ For sensitive events, *Encrypted link…* gives you an AES-256-GCM (PBKDF2 200K)
 - Add / remove / drag-reorder axes (up to 8)
 - Add / remove options per axis (up to 12 each)
 - Plain share link or encrypted share link with passphrase
+- **Pill bar at the top** lists every event you're tracking on this device — tap to switch, ★ marks events you own, × deletes, "+ New event" starts a fresh draft. Run as many events in parallel as you want.
 - Auto-saves your draft to localStorage so you can come back to it
 
 **Respond**
@@ -59,11 +60,20 @@ For sensitive events, *Encrypted link…* gives you an AES-256-GCM (PBKDF2 200K)
 - **Export**: copy as text (paste-back into chat), download as PNG (lazy-loads `html2canvas` from CDN)
 - Validation banner if a pasted code was generated for a different event structure
 
+**Multi-event + cross-device**
+- Each event has its own random salt assigned at first share — two unrelated groups creating "Team Dinner" with identical defaults still get separate identities, no silent corruption
+- **Tally on a second device**: organiser created the event on a laptop but responses are arriving on their phone? Tap the first response link on the phone, tap "Tally it here" once in the banner, and from then on the phone auto-merges every new response. One tap per device, no accounts, no sync server
+- **Non-owner banner**: when a *participant* taps another participant's response link by accident (which happens constantly in busy group chats), they see a friendly explainer instead of being dropped into a confusing partial-tally view. Their own scoring is untouched
+
+**Guide & onboarding**
+- Built-in **Guide tab** with two role tracks: "As the organiser" (6 numbered steps + power tips) and "As a participant" (3 steps + power tips). Inline screenshots of every key UI state. Deep-linkable: `#guide`, `#guide=organiser`, `#guide=participant`
+- First-run intro modal explains the gardening origin of *nemawashi* and the philosophy. Dismissible, but re-openable any time via the `?` button → "About Nemawashi". Versioned key forces a re-show when content meaningfully changes.
+
 **Privacy**
-- Event configs travel as URL hash fragments — never sent to any server
-- Response codes travel through whatever channel the group already uses
+- Event configs and responses travel as URL hash fragments — never sent to any server, even by your own browser
 - All computation is local; no analytics, no cookies, no tracking
 - Encrypted-link variant uses AES-256-GCM with PBKDF2 200K iterations
+- Owner detection is purely client-side: a localStorage flag set when *you* click Generate Link. No accounts, no auth, no cryptographic identity
 
 ## Run
 
@@ -77,14 +87,16 @@ Then visit `http://localhost:8100/`.
 
 ## Tech
 
-- Zero dependencies, zero build step, zero workers
-- Pure JavaScript, ~1500 lines including CSS and the help / intro modals
+- Zero dependencies, zero build step, zero workers, zero accounts
+- Pure JavaScript, ~2,900 lines including CSS, the Guide tab content, intro/help modals, multi-event switcher, and the non-owner banner
 - Combinatorial scoring is main-thread with `setTimeout(0)` yields above 5 K combos — sub-100ms for any realistic event (3–5 axes × 3–5 options)
 - `crypto.subtle` for AES-256-GCM, `URLSearchParams` and `encodeURIComponent` for the plain hash format
+- `html2canvas` lazy-loaded from CDN only when the user clicks "Download PNG"
+- Sibling `screenshots/` folder for the Guide tab — works from `file://` and any static host. The app itself stays single-file.
 
 ## Tests
 
-Open `tests.html` in the same folder. 51 unit tests cover combinations, validity, scoring, ranking, encode/decode round-trips, response-code parsing, name sanitisation, eventId stability, and the encrypt/decrypt round-trip.
+Open `tests.html` in the same folder. **74 unit tests** cover: combinations and ranking, validity and scoring, encode/decode round-trips, response-code parsing, name sanitisation, salt generation and salted-eventId resolution, identical-content / different-salts collision-resistance, salted edit identity preservation, owner / tallier detection, stored-event enumeration, and the encrypt/decrypt round-trip.
 
 ## Series
 
