@@ -444,6 +444,43 @@
   .modal-tab-content { display: none; }
   .modal-tab-content.active { display: block; }
 
+  /* Intro modal — richer multi-section layout */
+  #intro-overlay .modal { max-width: 580px; }
+  #intro-overlay .modal h2 {
+    font-size: 22px; margin: 0 0 18px;
+    border-bottom: 2px solid var(--brand);
+    padding-bottom: 12px;
+    letter-spacing: 0.01em;
+  }
+  .intro-section {
+    margin: 14px 0;
+    padding: 12px 14px;
+    background: var(--bg);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+  }
+  .intro-section + .intro-section { margin-top: 16px; }
+  .intro-section .intro-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--brand);
+    font-weight: 700;
+    margin: 0 0 6px;
+  }
+  .intro-section p {
+    margin: 6px 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .intro-section p em {
+    font-style: normal;
+    color: var(--accent);
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+    font-weight: 500;
+  }
+
   /* Toast */
   .toast {
     position: fixed; bottom: 70px; left: 50%;
@@ -894,10 +931,23 @@ NW:Mira:1,2,3|2,2,1|1,3,2"></textarea>
 
 <div class="overlay" id="intro-overlay">
   <div class="modal">
-    <h2>Welcome to Nemawashi</h2>
-    <p><em>根回し</em> — the Japanese practice of building informal consensus before a formal decision. Literally "going around the roots."</p>
-    <p><strong>What it does.</strong> Plan a group thing — retreat, dinner, project — across multiple decisions at once. Dates AND location AND hotel AND meals. Each person scores every option (or vetoes the ones they can't do). The tool finds the combination that makes the group happiest.</p>
-    <p><strong>The trick.</strong> No server, no accounts. The organiser shares a link. Each participant generates a short code. Paste codes back into the group chat. The chat is the transport layer.</p>
+    <h2>Welcome to <span lang="ja" style="font-family:'Hiragino Mincho ProN','Yu Mincho',serif;color:var(--accent);">根回し</span> Nemawashi</h2>
+
+    <div class="intro-section">
+      <p class="intro-label">The name</p>
+      <p>The word comes from gardening. When a tree needs to be transplanted, a skilled gardener doesn't just yank it out — they spend weeks beforehand carefully exposing and trimming its roots, one section at a time, so the tree quietly prepares itself for the move. When the day comes to dig it up, there's no shock. <em>Ne</em> (根) means "root", <em>mawashi</em> (回し) means "going around". <strong>Going around the roots.</strong></p>
+      <p>The word was borrowed into Japanese business and political culture for the same thing done with people: before a meeting where a decision will be made, you have quiet, informal conversations with everyone involved — surfacing objections, finding constraints, building soft alignment — so when the formal moment comes, there's no drama. Everyone was prepared. The decision is ratified, not fought over.</p>
+    </div>
+
+    <div class="intro-section">
+      <p class="intro-label">What this site does</p>
+      <p>Helps your group do that informal prep across <strong>more than one dimension at a time</strong>. Doodle handles "when are you free?". Real decisions are messier — when AND where AND which hotel AND what meal plan AND the budget. Nemawashi lets the organiser define every axis, lets each participant score every option (Love / Like / Okay / Block), and finds the combination that makes the group happiest while respecting any vetoes.</p>
+    </div>
+
+    <div class="intro-section">
+      <p class="intro-label">The trick</p>
+      <p>No server, no accounts, no data leaving your device. The organiser sends a link through your group chat. Each participant clicks, scores, and sends back their own link. <strong>The chat you're already using is the transport layer.</strong> The site is just a calculator that runs in your browser.</p>
+    </div>
     <div class="actions">
       <button class="btn" id="intro-guide-btn">📖 Open the guide</button>
       <button class="btn primary" id="intro-ok-btn">Got it</button>
@@ -974,6 +1024,8 @@ const S = {
 window.S = S;            // expose for tests.html
 
 const STORAGE_PREFIX = 'nemawashi:';
+const DRAFT_KEY = 'nemawashi:__draft';
+const LAST_EVENT_KEY = 'nemawashi.lastEventKey';
 const INTRO_KEY = 'nemawashi.introSeen';
 const NAME_KEY = 'nemawashi.lastName';
 
@@ -981,7 +1033,7 @@ const NAME_KEY = 'nemawashi.lastName';
    PURE FUNCTIONS — exposed on window for tests.html
    ============================================================ */
 
-// djb2 string hash → eventId
+// djb2 string hash — used as fallback eventId for legacy URLs without a salt
 function djb2(str) {
   let h = 5381;
   for (let i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
@@ -989,33 +1041,50 @@ function djb2(str) {
 }
 window.djb2 = djb2;
 
+// Generate a random 10-char base36 salt — crypto.getRandomValues is everywhere
+function genSalt() {
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  let s = '';
+  for (const b of bytes) s += b.toString(36).padStart(2, '0');
+  return s.slice(0, 10);
+}
+window.genSalt = genSalt;
+
+// Event identity = salt (if assigned at share time) else content-hash (backwards compat)
 function eventId(event) {
+  if (event && event.salt) return event.salt;
   return djb2(JSON.stringify({
-    name: event.name,
-    axes: event.axes.map(a => ({ name: a.name, options: a.options })),
+    name: (event && event.name) || '',
+    axes: ((event && event.axes) || []).map(a => ({ name: a.name, options: a.options })),
   }));
 }
 window.eventId = eventId;
 
 // ---- Plain config encoding ----
+// Format: [s=<salt>&]e=<name>&a=<axisName>:<o1>,<o2>|<axisName>:<o1>,<o2>...
+// `s=` is optional (omitted for legacy URLs without a salt)
 function encodeConfig(event) {
-  const e = encodeURIComponent(event.name || '');
+  const parts = [];
+  if (event.salt) parts.push('s=' + encodeURIComponent(event.salt));
+  parts.push('e=' + encodeURIComponent(event.name || ''));
   const a = (event.axes || [])
     .map(ax => encodeURIComponent(ax.name || '') + ':' +
                (ax.options || []).map(encodeURIComponent).join(','))
     .join('|');
-  return `e=${e}&a=${a}`;
+  parts.push('a=' + a);
+  return parts.join('&');
 }
 window.encodeConfig = encodeConfig;
 
 function decodeConfig(hashBody) {
-  // hashBody is the part after #, possibly with leading "e=..."
+  // hashBody is the part after #, possibly with leading "s=..." or "e=..."
   const params = {};
   hashBody.split('&').forEach(pair => {
     const eq = pair.indexOf('=');
     if (eq < 0) return;
     params[pair.slice(0, eq)] = pair.slice(eq + 1);
   });
+  const salt = params.s ? decodeURIComponent(params.s) : null;
   const name = decodeURIComponent(params.e || '');
   const axesStr = params.a || '';
   const axes = axesStr ? axesStr.split('|').map((seg, i) => {
@@ -1028,7 +1097,9 @@ function decodeConfig(hashBody) {
       options: rawOpts ? rawOpts.split(',').map(o => decodeURIComponent(o)) : [],
     };
   }) : [];
-  return { name, axes };
+  const out = { name, axes };
+  if (salt) out.salt = salt;
+  return out;
 }
 window.decodeConfig = decodeConfig;
 
@@ -1221,7 +1292,13 @@ window.decryptShare = decryptShare;
    STORAGE
    ============================================================ */
 
-function storageKey() { return STORAGE_PREFIX + eventId(S.event); }
+// Storage key:
+//   - Salted events (shared at least once) → nemawashi:<salt>
+//   - In-progress drafts (no salt yet)     → nemawashi:__draft  (single key, no keystroke bloat)
+function storageKey() {
+  if (S.event && S.event.salt) return STORAGE_PREFIX + S.event.salt;
+  return DRAFT_KEY;
+}
 
 function persist() {
   try {
@@ -1232,12 +1309,13 @@ function persist() {
       myScores: S.myScores,
       rawCodes: S.rawCodes,
     }));
+    localStorage.setItem(LAST_EVENT_KEY, k);
   } catch (e) { /* quota etc — ignore */ }
 }
 
 function loadFor(event) {
   try {
-    const k = STORAGE_PREFIX + eventId(event);
+    const k = (event && event.salt) ? (STORAGE_PREFIX + event.salt) : (STORAGE_PREFIX + eventId(event));
     const raw = localStorage.getItem(k);
     if (!raw) return null;
     return JSON.parse(raw);
@@ -1521,8 +1599,8 @@ function validateConfig() {
 }
 
 function snapshotEvent() {
-  // Clean copy with trimmed values, no empty options
-  return {
+  // Clean copy with trimmed values, no empty options. Preserves salt if present.
+  const out = {
     name: S.event.name.trim(),
     axes: S.event.axes.map((a, i) => ({
       id: 'a' + i,
@@ -1530,11 +1608,26 @@ function snapshotEvent() {
       options: a.options.map(o => o.trim()).filter(Boolean),
     })),
   };
+  if (S.event.salt) out.salt = S.event.salt;
+  return out;
+}
+
+// Ensure the current event has a salt. Called at the moment of first share.
+// Migrates the in-memory state from the draft key to the new salted key.
+function ensureSalt() {
+  if (S.event.salt) return false; // already salted
+  const newSalt = genSalt();
+  S.event.salt = newSalt;
+  // Move from __draft to nemawashi:<salt>: write under new key, drop the draft
+  persist(); // writes to nemawashi:<salt> because S.event.salt is now set
+  try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+  return true;
 }
 
 function generatePlainLink() {
   const err = validateConfig();
   if (err) { toast(err, 'error'); return; }
+  ensureSalt();
   const clean = snapshotEvent();
   const base = location.origin + location.pathname;
   const url = base + '#' + encodeConfig(clean);
@@ -1551,6 +1644,7 @@ async function generateEncryptedLink() {
   });
   if (passphrase === null) return;
   if (!passphrase || passphrase.length < 4) { toast('Passphrase too short (min 4 chars)', 'error'); return; }
+  ensureSalt();
   const clean = snapshotEvent();
   try {
     const payload = await encryptShare(clean, passphrase);
@@ -1576,11 +1670,12 @@ async function resetEvent() {
     okLabel: 'Reset', danger: true,
   });
   if (!ok) return;
-  // Clear all nemawashi keys
+  // Clear all nemawashi keys (events + draft + pointer)
   for (let i = localStorage.length - 1; i >= 0; i--) {
     const k = localStorage.key(i);
     if (k && k.startsWith(STORAGE_PREFIX)) localStorage.removeItem(k);
   }
+  try { localStorage.removeItem(LAST_EVENT_KEY); } catch (e) {}
   S.event = { name: '', axes: [] };
   S.myScores = {};
   S.responses = [];
@@ -2090,7 +2185,11 @@ async function loadFromHash() {
     try {
       const data = await decryptShare(encBody, passphrase);
       if (!data || !data.axes) throw new Error('bad');
-      S.event = { name: data.name || '', axes: data.axes.map((a, i) => ({ id: 'a' + i, name: a.name || '', options: a.options || [] })) };
+      S.event = {
+        name: data.name || '',
+        axes: data.axes.map((a, i) => ({ id: 'a' + i, name: a.name || '', options: a.options || [] })),
+      };
+      if (data.salt) S.event.salt = data.salt;
       S.fromHash = true;
       return { kind: 'event', response: extractResponseFromHash(h) };
     } catch (e) {
@@ -2190,26 +2289,41 @@ async function init() {
   bindResults();
   bindGuide();
 
-  // Try restoring last-edited event from localStorage so a response-only URL
-  // (#r=NW:Name:...) has an event to merge into.
+  // Restore the last-touched event from localStorage. Preference order:
+  //   1. nemawashi.lastEventKey pointer (most reliable)
+  //   2. nemawashi:__draft (in-progress unsaved event)
+  //   3. any nemawashi:<salt> key (legacy or non-pointer salted event)
   function restoreFromStorage() {
+    const tryKey = (k) => {
+      try {
+        if (!k) return false;
+        const raw = localStorage.getItem(k);
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        if (!parsed.event || !parsed.event.axes || !parsed.event.axes.length) return false;
+        S.event = parsed.event;
+        S.myScores = parsed.myScores || {};
+        S.myName = parsed.myName || '';
+        S.rawCodes = parsed.rawCodes || '';
+        return true;
+      } catch (e) { return false; }
+    };
+
+    let pointer = null;
+    try { pointer = localStorage.getItem(LAST_EVENT_KEY); } catch (e) {}
+    if (tryKey(pointer)) return true;
+    if (tryKey(DRAFT_KEY)) return true;
+
+    // Fallback: walk all nemawashi: keys, take the first viable one
     try {
-      let mostRecent = null;
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k && k.startsWith(STORAGE_PREFIX)) mostRecent = k;
+        if (k && k.startsWith(STORAGE_PREFIX) && k !== DRAFT_KEY) {
+          if (tryKey(k)) return true;
+        }
       }
-      if (!mostRecent) return false;
-      const raw = localStorage.getItem(mostRecent);
-      if (!raw) return false;
-      const parsed = JSON.parse(raw);
-      if (!parsed.event || !parsed.event.axes || !parsed.event.axes.length) return false;
-      S.event = parsed.event;
-      S.myScores = parsed.myScores || {};
-      S.myName = parsed.myName || '';
-      S.rawCodes = parsed.rawCodes || '';
-      return true;
-    } catch (e) { return false; }
+    } catch (e) {}
+    return false;
   }
 
   const result = await loadFromHash();
