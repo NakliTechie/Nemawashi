@@ -963,13 +963,39 @@ NW:Mira:1,2,3|2,2,1|1,3,2"></textarea>
         <img src="screenshots/nw-03-results.png" alt="Results tab showing the winning combination card with Mar 15-17 / Coorg / All-inclusive and a top-5 table below">
       </div>
 
+      <div class="guide-step">
+        <div class="guide-step-header">
+          <span class="guide-step-num">5</span>
+          <h3>Run more than one event at a time</h3>
+        </div>
+        <p>The pill bar at the top of the <strong>Setup</strong> tab lists every event you're tracking on this device. Each pill is one event &mdash; tap it to switch, tap the <strong>×</strong> to delete it, or tap <strong>+ New event</strong> at the end to start a fresh one without losing the others.</p>
+        <p class="muted">A <span style="color:var(--accent);font-size:13px;">★</span> star marks events you created (where you're the organiser). Pills without a star are events you received as a participant. Each event has its own scores and tally &mdash; they don't bleed into each other.</p>
+        <img src="screenshots/nw-07-pill-bar.png" alt="The event pill bar at the top of Setup showing three events (Office party as current, FIRE Retreat 2026 and Sunday brunch as owned events) and a + New event pill">
+        <div class="guide-tip">
+          <strong>Why salts matter</strong>
+          <p>Two unrelated groups can both create a "Team dinner" event with identical options &mdash; they get separate identities (different salts), so your tally for one never contaminates the other. This is fixed under the hood; you just see two pills in your bar.</p>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-header">
+          <span class="guide-step-num">6</span>
+          <h3>Tally on a second device</h3>
+        </div>
+        <p>You created the event on your laptop, but the WhatsApp responses are coming in on your phone. No problem.</p>
+        <p>Tap the first response link on your phone. You'll see a banner: <em>"Ravi has responded to this event. The organiser tallies responses &mdash; you don't need to."</em> Because your phone doesn't yet know <em>you</em> are the organiser, it's playing it safe.</p>
+        <p>Tap the <strong>Tally it here</strong> button in the banner. Your phone now claims ownership of this event &mdash; the response gets ingested, and from this point onward every new response link you tap on your phone auto-merges into the results, just like on your laptop. <strong>One tap per device, on the first response only.</strong></p>
+      </div>
+
       <div class="guide-powertips">
         <h3>Power tips</h3>
         <ul>
           <li><strong>What-if mode.</strong> Uncheck a participant's chip in the left column to see how the ranking changes without them. Useful when someone is wavering and you want to see how much their veto is costing the group. Ranking updates instantly.</li>
           <li><strong>Deadlock detection.</strong> If every possible combination has at least one veto, the results tab shows conflict analysis &mdash; the closest-to-consensus options plus "if X could flex on Y, N combinations unlock" suggestions. Actively moves the conversation forward instead of just saying "no answer".</li>
+          <li><strong>Encrypted events for sensitive decisions.</strong> Click <em>🔐 Encrypted link&hellip;</em> instead of the plain Generate link button. Choose a passphrase, share it with your group out-of-band (in person, SMS, another channel). The link uses AES-256-GCM with PBKDF2 200K &mdash; nothing leaves your browser.</li>
           <li><strong>Export the verdict.</strong> <em>Copy results as text</em> gives you a formatted summary to paste back into chat. <em>Download PNG</em> snapshots the whole results view as an image.</li>
-          <li><strong>Saves automatically.</strong> Your draft event, pasted codes, and what-if state all persist to browser storage. Close the tab and come back later.</li>
+          <li><strong>Saves automatically per event.</strong> Each event's scores, pasted codes, and what-if state persist to browser storage under that event's identity. Close the tab and come back later &mdash; the pill bar restores everything.</li>
+          <li><strong>About this app.</strong> Tap the <strong>?</strong> button in the header for the scoring legend, then tap <em>About Nemawashi</em> to re-read the gardening lore.</li>
         </ul>
       </div>
 
@@ -1034,6 +1060,17 @@ NW:Mira:1,2,3|2,2,1|1,3,2"></textarea>
           <li><strong>Your draft saves automatically.</strong> If you close the tab mid-scoring, the same link reopens to your in-progress response. Your browser stores it locally &mdash; nothing is uploaded.</li>
           <li><strong>Plain-code fallback.</strong> If the share-back URL doesn't come through well (some chat apps mangle long links), expand <em>Or copy as a plain code</em> to get the raw <code>NW:Name:scores</code> string instead.</li>
         </ul>
+      </div>
+
+      <div class="guide-step" style="background:var(--brand-light);border-color:rgba(31,58,95,0.2);">
+        <div class="guide-step-header">
+          <span class="guide-step-num" style="background:var(--accent);">!</span>
+          <h3>If you tap another participant's link</h3>
+        </div>
+        <p>It happens: someone else sends their share-back link into the same chat, and you tap it out of curiosity (or by accident, because your phone treats links as taps). You'll see this banner:</p>
+        <img src="screenshots/nw-08-nonowner-banner.png" alt="A misty indigo banner reading 'Ravi has responded to this event. The organiser tallies responses — you don't need to' with a Tally it here button and a dismiss X">
+        <p><strong>This is normal &mdash; nothing is broken.</strong> The banner is telling you that the other person's response is for the organiser to tally, not you. Just dismiss the banner with the <strong>×</strong>, and continue scoring your own response on the same screen. Your draft and your scores are untouched.</p>
+        <p class="muted">The <strong>Tally it here</strong> button is for the organiser, not for you. It tells the app "I'm the one collecting responses on this device." Don't tap it unless you actually <em>are</em> the organiser opening the event from a second device (laptop &rarr; phone).</p>
       </div>
 
     </div>
