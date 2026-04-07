@@ -111,8 +111,13 @@
   main.mode-setup .panel.setup,
   main.mode-respond .panel.respond,
   main.mode-results .panel.results,
-  main.mode-guide .panel.guide { display: block; }
+  main.mode-guide .panel.guide,
+  main.mode-verdict .panel.verdict { display: block; }
   main.mode-guide { max-width: 880px; }
+  main.mode-verdict { max-width: 720px; }
+  /* Verdict mode hides the tabs and ? button — it's a dedicated share view */
+  body.verdict-view .tabs,
+  body.verdict-view .help-btn { display: none; }
 
   h2 { font-size: 18px; margin: 0 0 4px; }
   .lead { color: var(--ink-dim); font-size: 13px; margin: 0 0 16px; }
@@ -614,6 +619,356 @@
     .nob-actions { flex-basis: 100%; justify-content: flex-end; }
   }
 
+  /* ================= Field helpers ================= */
+  .field-optional {
+    font-weight: 400; font-size: 11px; color: var(--ink-dim);
+    text-transform: none; letter-spacing: 0;
+  }
+  .field-help {
+    font-size: 12px; color: var(--ink-dim);
+    margin: 4px 0 0 0; font-style: italic;
+  }
+
+  /* ================= Template grid ================= */
+  .template-grid-wrap {
+    margin: 14px 0 18px;
+    padding: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 6px;
+  }
+  .template-grid-wrap[hidden] { display: none; }
+  .template-grid-label {
+    margin: 0 0 10px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--brand);
+    font-weight: 700;
+  }
+  .template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+  }
+  .template-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    transition: all 0.15s;
+  }
+  .template-card:hover {
+    border-color: var(--brand);
+    background: var(--brand-light);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(17, 37, 67, 0.08);
+  }
+  .template-emoji { font-size: 22px; line-height: 1; }
+  .template-name { font-weight: 600; font-size: 14px; color: var(--ink); }
+  .template-desc { font-size: 11px; color: var(--ink-dim); line-height: 1.3; }
+
+  /* ================= Roster progress ================= */
+  .roster-progress {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: var(--brand-light);
+    border: 1px solid rgba(31, 58, 95, 0.25);
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .roster-progress[hidden] { display: none; }
+  .rp-header { color: var(--brand-dark); margin-bottom: 6px; }
+  .rp-header strong { font-weight: 700; }
+  .rp-check { color: var(--love); font-weight: 600; }
+  .rp-bar {
+    height: 5px;
+    background: rgba(31, 58, 95, 0.12);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .rp-bar-fill {
+    height: 100%;
+    background: var(--brand);
+    transition: width 0.3s ease;
+  }
+  .rp-waiting {
+    font-size: 12px;
+    color: var(--brand-dark);
+    margin-bottom: 8px;
+  }
+  .rp-waiting-label { opacity: 0.7; }
+  .rp-waiting-names { font-weight: 600; }
+  .rp-remind {
+    width: 100%;
+    font-size: 12px;
+  }
+
+  /* Unexpected-respondent chip badge */
+  .pchip-unexpected {
+    display: inline-grid;
+    place-items: center;
+    width: 16px; height: 16px;
+    background: var(--like);
+    color: white;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 4px;
+    cursor: help;
+  }
+
+  /* ================= Winner explanation disclosure ================= */
+  .winner-explain {
+    margin-top: 12px;
+    border-top: 1px solid rgba(91, 63, 10, 0.2);
+    padding-top: 10px;
+  }
+  .winner-explain summary {
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--winner-ink);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    user-select: none;
+    padding: 2px 0;
+  }
+  .winner-explain summary:hover { color: var(--accent); }
+  .winner-explain-body {
+    padding-top: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--winner-ink);
+  }
+  .winner-explain-body p { margin: 6px 0; }
+  .winner-explain-body strong { color: var(--ink); font-weight: 700; }
+
+  /* ================= Verdict view ================= */
+  body.verdict-view {
+    background: var(--bg);
+  }
+  body.verdict-view header.app-header {
+    justify-content: center;
+  }
+  body.verdict-view header.app-header .header-spacer { display: none; }
+  .verdict-wrap {
+    padding: 24px 0;
+  }
+  .verdict-card {
+    background: linear-gradient(135deg, var(--winner-grad-1) 0%, var(--winner-grad-2) 100%);
+    border: 1px solid var(--winner-border);
+    border-radius: 12px;
+    padding: 32px 28px;
+    position: relative;
+    box-shadow: 0 4px 14px rgba(91, 63, 10, 0.12);
+  }
+  .verdict-card::after {
+    content: '決';
+    position: absolute; top: 16px; right: 16px;
+    width: 52px; height: 52px;
+    background: var(--accent);
+    color: white;
+    border-radius: 5px;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", "Songti SC", serif;
+    font-size: 32px;
+    line-height: 52px;
+    text-align: center;
+    box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.22),
+                0 2px 4px rgba(91, 63, 10, 0.3);
+    transform: rotate(-7deg);
+  }
+  .verdict-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--winner-ink);
+    opacity: 0.75;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .verdict-title {
+    margin: 0 0 20px;
+    font-size: 26px;
+    color: var(--ink);
+    line-height: 1.2;
+    max-width: 88%;
+  }
+  .verdict-axes { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+  .verdict-axis {
+    display: flex; gap: 14px; align-items: baseline;
+    padding: 10px 14px;
+    background: rgba(251, 248, 238, 0.7);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+  }
+  .verdict-axis .va-name {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--winner-ink); opacity: 0.7;
+    min-width: 90px; font-weight: 600;
+  }
+  .verdict-axis .va-pick {
+    font-weight: 700; font-size: 18px; color: var(--ink);
+  }
+  .verdict-stats {
+    display: flex; gap: 18px; font-size: 12px;
+    color: var(--winner-ink); font-weight: 500;
+    border-top: 1px solid rgba(91, 63, 10, 0.2);
+    padding-top: 12px;
+  }
+  .verdict-footer {
+    margin-top: 20px;
+    text-align: center;
+  }
+  .verdict-cta {
+    display: inline-block;
+    padding: 10px 20px;
+    background: var(--brand);
+    color: white !important;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 13px;
+    transition: background 0.15s;
+  }
+  .verdict-cta:hover { background: var(--brand-dark); }
+  .verdict-brand {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--ink-dim);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  /* ================= Off-screen 1200×630 shareable card ================= */
+  .verdict-card-og {
+    position: fixed;
+    top: 0; left: -9999px;
+    width: 1200px; height: 630px;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  .verdict-card-og .voc-stripe {
+    height: 10px;
+    background: linear-gradient(90deg, var(--brand) 0%, var(--brand) 70%, var(--accent) 70%, var(--accent) 100%);
+  }
+  .verdict-card-og .voc-inner {
+    padding: 40px 60px 50px;
+    position: relative;
+    height: calc(100% - 10px);
+    box-sizing: border-box;
+  }
+  .verdict-card-og .voc-label {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--brand);
+    font-weight: 700;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  }
+  .verdict-card-og .voc-title {
+    margin: 8px 0 28px;
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ink);
+    max-width: 85%;
+    letter-spacing: -0.01em;
+  }
+  .verdict-card-og .voc-axes { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+  .verdict-card-og .voc-axis {
+    display: flex;
+    gap: 20px;
+    align-items: baseline;
+    padding: 14px 20px;
+    background: rgba(251, 248, 238, 0.85);
+    border-left: 5px solid var(--accent);
+    border-radius: 4px;
+  }
+  .verdict-card-og .voc-ax-name {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-dim);
+    min-width: 140px;
+    font-weight: 600;
+  }
+  .verdict-card-og .voc-ax-pick {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .verdict-card-og .voc-stats {
+    display: flex;
+    gap: 48px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 2px solid rgba(31, 58, 95, 0.2);
+  }
+  .verdict-card-og .voc-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .verdict-card-og .voc-stat-val {
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--brand);
+    line-height: 1;
+  }
+  .verdict-card-og .voc-stat-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+  }
+  .verdict-card-og .voc-footer {
+    position: absolute;
+    bottom: 32px;
+    left: 60px;
+    right: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .verdict-card-og .voc-brand {
+    font-size: 14px;
+    color: var(--ink-dim);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  .verdict-card-og .voc-hanko {
+    width: 70px; height: 70px;
+    background: var(--accent);
+    color: white;
+    border-radius: 6px;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", "Songti SC", serif;
+    font-size: 48px;
+    line-height: 70px;
+    text-align: center;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.25),
+                0 3px 8px rgba(91, 63, 10, 0.3);
+    transform: rotate(-7deg);
+  }
+
+  /* ================= Results actions row ================= */
+  .results-actions-label {
+    font-size: 13px;
+    color: var(--ink-dim);
+    margin-right: 6px;
+    align-self: center;
+  }
+
   /* ================= Guide page ================= */
   .panel.guide {
     padding-bottom: 40px;
@@ -808,9 +1163,20 @@
     <h2>Create a decision</h2>
     <p class="lead">Define what needs deciding. Add as many axes as you need — dates, location, hotel tier, meal plan. Each axis gets 2–10 options.</p>
 
+    <div class="template-grid-wrap" id="template-grid-wrap" hidden>
+      <p class="template-grid-label">Or start from a template</p>
+      <div class="template-grid" id="template-grid"></div>
+    </div>
+
     <div class="field">
       <label for="event-name">Event name</label>
       <input id="event-name" class="input" placeholder="e.g. FIRE Retreat 2026" maxlength="80">
+    </div>
+
+    <div class="field">
+      <label for="event-roster">Expected participants <span class="field-optional">(optional)</span></label>
+      <input id="event-roster" class="input" placeholder="e.g. Alice, Bob, Carol, Dave" maxlength="300">
+      <p class="field-help">Comma-separated names. Lets the Results tab show "3 of 5 responded · still waiting on Alice, Bob". Leave blank to skip.</p>
     </div>
 
     <div class="axes-list" id="axes-list"></div>
@@ -820,6 +1186,7 @@
     <div class="setup-actions">
       <button class="btn primary" id="gen-link-btn">Generate share link</button>
       <button class="btn accent" id="gen-enc-btn">🔐 Encrypted link…</button>
+      <button class="btn" id="template-btn">📋 Templates…</button>
       <button class="btn" id="reset-btn">Reset</button>
     </div>
 
@@ -884,6 +1251,7 @@
     <div class="results-cols">
       <div class="responses-pane">
         <h3>Response codes</h3>
+        <div class="roster-progress" id="roster-progress" hidden></div>
         <textarea id="codes-input" placeholder="Click a share-back link in chat — it'll auto-fill here.
 
 Or paste codes manually:
@@ -900,8 +1268,10 @@ NW:Mira:1,2,3|2,2,1|1,3,2"></textarea>
     </div>
 
     <div class="results-actions" id="results-actions" style="display:none;">
-      <button class="btn" id="copy-results-btn">Copy results as text</button>
-      <button class="btn" id="download-png-btn">Download PNG</button>
+      <strong class="results-actions-label">Share the verdict:</strong>
+      <button class="btn" id="copy-results-btn">📝 Copy as text</button>
+      <button class="btn" id="copy-verdict-link-btn">🔗 Copy link</button>
+      <button class="btn accent" id="download-card-btn">🖼️ Download image</button>
     </div>
   </section>
 
@@ -929,6 +1299,14 @@ NW:Mira:1,2,3|2,2,1|1,3,2"></textarea>
         <p>Open the <strong>Setup</strong> tab. Give your event a name. Then add as many <em>axes</em> as your decision has dimensions &mdash; dates, location, meal plan, budget tier, whatever. Each axis gets 2&ndash;12 options.</p>
         <p class="muted">In this example, "FIRE Retreat 2026" has three axes (Dates, Location, Meals), each with three options &mdash; enough for 3&times;3&times;3 = 27 possible combinations.</p>
         <img src="screenshots/nw-01-setup.png" alt="Setup tab with FIRE Retreat 2026 event configured with three axes: Dates, Location, Meals">
+        <div class="guide-tip">
+          <strong>Shortcut: templates</strong>
+          <p>Don't build from scratch &mdash; pick one of ten templates (Dinner out, Weekend trip, Team offsite, Movie night, Birthday, Book club, Meeting time, Potluck, Group gift, Vacation). Each loads a pre-filled event you then edit. Shown automatically on a fresh setup, or click <strong>📋 Templates&hellip;</strong> any time.</p>
+        </div>
+        <div class="guide-tip">
+          <strong>Optional: expected participants</strong>
+          <p>Fill in the <em>Expected participants</em> field with comma-separated names. The Results tab will then show "3 of 5 responded" with a progress bar and a "still waiting on" list &mdash; so you know when to stop chasing people, and who to chase.</p>
+        </div>
       </div>
 
       <div class="guide-step">
@@ -961,6 +1339,14 @@ NW:Mira:1,2,3|2,2,1|1,3,2"></textarea>
         <p>The <strong>Best Combination</strong> card (marked with a <span lang="ja">決</span> "decided" hanko) shows the winning combination &mdash; the choice across every axis that maximises total group satisfaction. Below it, the top 5 ranked combinations let you see near-misses and trade-offs.</p>
         <p class="muted">Total satisfaction = sum of every participant's score across every axis. Fairness floor = the minimum any one person scored. Ties on total are broken by fairness &mdash; the combo that's least bad for the least-happy person wins.</p>
         <img src="screenshots/nw-03-results.png" alt="Results tab showing the winning combination card with Mar 15-17 / Coorg / All-inclusive and a top-5 table below">
+        <div class="guide-tip">
+          <strong>Click "Why this won" to see the reasoning</strong>
+          <p>Below the Best Combination stats, a small <em>Why this won</em> disclosure explains the verdict in plain language: which forced constraint made it unavoidable, and which veto, if flexed, would have changed the answer. Builds trust &mdash; people stop asking "why did it pick this?".</p>
+        </div>
+        <div class="guide-tip">
+          <strong>Share the verdict three ways</strong>
+          <p>When the decision is made, the <em>Share the verdict</em> row gives you: <strong>📝 Copy as text</strong> (formatted summary for paste-back), <strong>🔗 Copy link</strong> (a read-only verdict URL showing just the result &mdash; recipients can't see the raw scores or deliberations), and <strong>🖼️ Download image</strong> (a polished 1200&times;630 card with the Japanese palette and the 決 hanko, ready to post in chat or on social).</p>
+        </div>
       </div>
 
       <div class="guide-step">
@@ -1074,6 +1460,11 @@ NW:Mira:1,2,3|2,2,1|1,3,2"></textarea>
       </div>
 
     </div>
+  </section>
+
+  <!-- ============ VERDICT PANEL (read-only result view) ============ -->
+  <section class="panel verdict">
+    <div class="verdict-wrap" id="verdict-wrap"></div>
   </section>
 
 </main>
@@ -1244,9 +1635,39 @@ function isTallier(eventObj) {
 }
 window.isTallier = isTallier;
 
+// ---- Roster (expected participants) ----
+// Stored as Array<string> on event.roster. Matching is case-insensitive and
+// trims whitespace. Roster lives in the URL (&p=Alice,Bob) so every
+// participant sees the full list — honest about "we're waiting on you".
+function parseRoster(str) {
+  if (!str) return [];
+  return str.split(',')
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+}
+window.parseRoster = parseRoster;
+
+function normaliseName(s) {
+  return (s || '').trim().toLowerCase();
+}
+
+function rosterMatch(roster, name) {
+  if (!roster || !roster.length) return false;
+  const n = normaliseName(name);
+  return roster.some(r => normaliseName(r) === n);
+}
+window.rosterMatch = rosterMatch;
+
+function getMissingFromRoster(roster, responses) {
+  if (!roster || !roster.length) return [];
+  const responded = new Set(responses.map(r => normaliseName(r.name)));
+  return roster.filter(r => !responded.has(normaliseName(r)));
+}
+window.getMissingFromRoster = getMissingFromRoster;
+
 // ---- Plain config encoding ----
-// Format: [s=<salt>&]e=<name>&a=<axisName>:<o1>,<o2>|<axisName>:<o1>,<o2>...
-// `s=` is optional (omitted for legacy URLs without a salt)
+// Format: [s=<salt>&]e=<name>&a=<axisName>:<o1>,<o2>|<axisName>:<o1>,<o2>[&p=<Name1>,<Name2>...]
+// `s=` and `p=` are optional
 function encodeConfig(event) {
   const parts = [];
   if (event.salt) parts.push('s=' + encodeURIComponent(event.salt));
@@ -1256,6 +1677,9 @@ function encodeConfig(event) {
                (ax.options || []).map(encodeURIComponent).join(','))
     .join('|');
   parts.push('a=' + a);
+  if (event.roster && event.roster.length) {
+    parts.push('p=' + event.roster.map(encodeURIComponent).join(','));
+  }
   return parts.join('&');
 }
 window.encodeConfig = encodeConfig;
@@ -1281,8 +1705,12 @@ function decodeConfig(hashBody) {
       options: rawOpts ? rawOpts.split(',').map(o => decodeURIComponent(o)) : [],
     };
   }) : [];
+  const roster = params.p
+    ? params.p.split(',').map(decodeURIComponent).filter(Boolean)
+    : [];
   const out = { name, axes };
   if (salt) out.salt = salt;
+  if (roster.length) out.roster = roster;
   return out;
 }
 window.decodeConfig = decodeConfig;
@@ -1431,6 +1859,362 @@ async function rankCombinations(axes, responses) {
   return { valid, invalid };
 }
 window.rankCombinations = rankCombinations;
+
+// ---- Sensitivity analysis: explain why the winner won ----
+// Returns an object with up to two explanations:
+//   - constraint: "Mar 15-17 is the only date Ravi can do" (an axis where
+//     the winner is the only unblocked option)
+//   - alternative: "Without Ravi's block on Apr 5-7, the winner would be
+//     Apr 5-7 / Goa / All-inclusive (total 22, +3)" — the counterfactual
+//     where the single most-impactful veto is lifted
+function explainWinner(winner, axes, responses) {
+  if (!winner || !axes || !responses || !responses.length) return null;
+  const expl = {};
+
+  // 1. Critical-constraint scan: for each axis, check if the winner's pick
+  //    is the ONLY option not blocked by any participant. If yes, that's a
+  //    forced choice we can name-check.
+  for (let ax = 0; ax < axes.length; ax++) {
+    const nOpts = axes[ax].options.length;
+    const blockedByName = {}; // optIdx → [names who blocked it]
+    for (let opt = 0; opt < nOpts; opt++) {
+      blockedByName[opt] = [];
+      for (const r of responses) {
+        const v = r.scores[ax] && r.scores[ax][opt];
+        if (v === 0) blockedByName[opt].push(r.name);
+      }
+    }
+    // How many options on this axis are *not* blocked by anyone?
+    const unblockedOpts = [];
+    for (let opt = 0; opt < nOpts; opt++) {
+      if (blockedByName[opt].length === 0) unblockedOpts.push(opt);
+    }
+    if (unblockedOpts.length === 1 && unblockedOpts[0] === winner.combo[ax] && nOpts > 1) {
+      // Winner's pick is the only unblocked option on this axis. Name the blockers.
+      const blockedOthers = [];
+      for (let opt = 0; opt < nOpts; opt++) {
+        if (opt === winner.combo[ax]) continue;
+        const blockers = blockedByName[opt];
+        if (blockers.length > 0) {
+          blockedOthers.push({ option: axes[ax].options[opt], blockers });
+        }
+      }
+      expl.constraint = {
+        axisName: axes[ax].name,
+        winningOption: axes[ax].options[winner.combo[ax]],
+        blockedOthers,
+      };
+      break; // One constraint sentence is enough
+    }
+  }
+
+  // 2. Counterfactual: what if we lifted one veto? For each distinct
+  //    (participant, axis, option) veto, synthesise a modified response set
+  //    where that score becomes 1 (Okay) and re-rank. If the winner
+  //    changes, note the delta. Return the single most impactful swap.
+  const vetoList = [];
+  for (const r of responses) {
+    for (let ax = 0; ax < r.scores.length; ax++) {
+      for (let opt = 0; opt < r.scores[ax].length; opt++) {
+        if (r.scores[ax][opt] === 0) {
+          vetoList.push({ name: r.name, axis: ax, optIdx: opt });
+        }
+      }
+    }
+  }
+
+  let bestCF = null;
+  for (const veto of vetoList) {
+    // Clone responses with this veto lifted (0 → 1 for that slot)
+    const modified = responses.map(r => {
+      if (r.name !== veto.name) return r;
+      const newScores = r.scores.map(row => row.slice());
+      newScores[veto.axis][veto.optIdx] = 1;
+      return { ...r, scores: newScores };
+    });
+    // Synchronous rank (bounded by same combo count)
+    const ranked = synchronousRank(axes, modified);
+    if (!ranked.valid.length) continue;
+    const newWinner = ranked.valid[0];
+    // Did the winner actually change?
+    const sameCombo = newWinner.combo.every((o, i) => o === winner.combo[i]);
+    if (sameCombo) continue;
+    const delta = newWinner.total - winner.total;
+    // Track the one with the largest positive delta
+    if (!bestCF || delta > bestCF.delta) {
+      bestCF = {
+        name: veto.name,
+        axisName: axes[veto.axis].name,
+        optionName: axes[veto.axis].options[veto.optIdx],
+        newCombo: newWinner.combo,
+        newTotal: newWinner.total,
+        newMin: newWinner.min,
+        delta,
+      };
+    }
+  }
+  if (bestCF) expl.alternative = bestCF;
+
+  return expl;
+}
+window.explainWinner = explainWinner;
+
+// ---- Preset templates ----
+const TEMPLATES = [
+  {
+    id: 'dinner',
+    emoji: '🍽️',
+    name: 'Dinner out',
+    description: 'Pick a restaurant, when to go, and what kind of food',
+    event: {
+      name: 'Dinner out',
+      axes: [
+        { name: 'Where', options: ['Restaurant A', 'Restaurant B', 'Restaurant C'] },
+        { name: 'When', options: ['Fri evening', 'Sat evening', 'Sun evening'] },
+        { name: 'Cuisine', options: ['Italian', 'Japanese', 'Local'] },
+      ],
+    },
+  },
+  {
+    id: 'weekend-trip',
+    emoji: '✈️',
+    name: 'Weekend trip',
+    description: 'Short getaway — dates, destination, stay',
+    event: {
+      name: 'Weekend trip',
+      axes: [
+        { name: 'Dates', options: ['This weekend', 'Next weekend', 'Weekend after'] },
+        { name: 'Destination', options: ['Goa', 'Rishikesh', 'Coorg'] },
+        { name: 'Accommodation', options: ['Hotel', 'Airbnb', 'Resort'] },
+      ],
+    },
+  },
+  {
+    id: 'team-offsite',
+    emoji: '🏢',
+    name: 'Team offsite',
+    description: 'Multi-day team retreat or workshop',
+    event: {
+      name: 'Team offsite',
+      axes: [
+        { name: 'Dates', options: ['Week 1', 'Week 2', 'Week 3'] },
+        { name: 'Venue', options: ['City centre', 'Resort', 'Co-working space'] },
+        { name: 'Format', options: ['Hybrid', 'In-person only', 'Half-half'] },
+        { name: 'Meals', options: ['All-inclusive', 'Breakfast only', 'Self-organise'] },
+      ],
+    },
+  },
+  {
+    id: 'movie-night',
+    emoji: '🎬',
+    name: 'Movie night',
+    description: 'Pick what to watch, where, when',
+    event: {
+      name: 'Movie night',
+      axes: [
+        { name: 'Film', options: ['Option A', 'Option B', 'Option C'] },
+        { name: 'Where', options: ['Theatre', 'Streaming at home', 'Drive-in'] },
+        { name: 'When', options: ['Fri night', 'Sat night', 'Sun afternoon'] },
+      ],
+    },
+  },
+  {
+    id: 'birthday',
+    emoji: '🎉',
+    name: 'Birthday celebration',
+    description: 'Plan a birthday — date, venue, theme',
+    event: {
+      name: 'Birthday celebration',
+      axes: [
+        { name: 'Date', options: ['On the day', 'Weekend before', 'Weekend after'] },
+        { name: 'Venue', options: ['Home', 'Restaurant', 'Outdoor park'] },
+        { name: 'Theme', options: ['Casual', 'Fancy dress', 'Surprise'] },
+      ],
+    },
+  },
+  {
+    id: 'book-club',
+    emoji: '📚',
+    name: 'Book club pick',
+    description: 'Next book, when to meet, format',
+    event: {
+      name: 'Book club pick',
+      axes: [
+        { name: 'Next book', options: ['Book A', 'Book B', 'Book C'] },
+        { name: 'When to meet', options: ['In 2 weeks', 'In 4 weeks', 'In 6 weeks'] },
+        { name: 'Format', options: ['In person', 'Video call', 'Either works'] },
+      ],
+    },
+  },
+  {
+    id: 'meeting-time',
+    emoji: '🧑‍💻',
+    name: 'Meeting time',
+    description: 'Find a time everyone can make',
+    event: {
+      name: 'Meeting time',
+      axes: [
+        { name: 'Day', options: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+        { name: 'Time', options: ['Morning', 'Afternoon', 'Evening'] },
+        { name: 'Duration', options: ['30 min', '1 hour', '90 min'] },
+      ],
+    },
+  },
+  {
+    id: 'potluck',
+    emoji: '🎂',
+    name: 'Potluck',
+    description: 'Shared meal — date, theme, host',
+    event: {
+      name: 'Potluck',
+      axes: [
+        { name: 'Date', options: ['This Sunday', 'Next Saturday', 'Two weeks out'] },
+        { name: 'Theme', options: ['Italian', 'Asian', 'Anything goes'] },
+        { name: 'Host', options: ['Venue A', 'Venue B', 'Venue C'] },
+      ],
+    },
+  },
+  {
+    id: 'group-gift',
+    emoji: '🎁',
+    name: 'Group gift',
+    description: 'Pick a gift, price tier, who to include',
+    event: {
+      name: 'Group gift',
+      axes: [
+        { name: 'Item', options: ['Gift A', 'Gift B', 'Gift C'] },
+        { name: 'Budget per person', options: ['Low', 'Medium', 'High'] },
+        { name: 'Delivery', options: ['Before the day', 'On the day', 'Shipped to recipient'] },
+      ],
+    },
+  },
+  {
+    id: 'vacation',
+    emoji: '🏖️',
+    name: 'Vacation planning',
+    description: 'Longer trip — dates, destination, activities, meals',
+    event: {
+      name: 'Vacation planning',
+      axes: [
+        { name: 'Dates', options: ['Early', 'Mid', 'Late'] },
+        { name: 'Destination', options: ['Beach', 'Mountains', 'City'] },
+        { name: 'Activities', options: ['Relaxed', 'Adventurous', 'Cultural'] },
+        { name: 'Meals', options: ['All-inclusive', 'Breakfast only', 'Self-organise'] },
+      ],
+    },
+  },
+];
+window.TEMPLATES = TEMPLATES;
+
+function applyTemplate(templateId) {
+  const t = TEMPLATES.find(x => x.id === templateId);
+  if (!t) return;
+  // If the current draft has unsaved work, confirm
+  if (currentDraftIsDirty()) {
+    nwConfirm({
+      title: 'Discard unsaved draft?',
+      message: 'Applying a template will replace your in-progress event.',
+      okLabel: 'Apply template', danger: true,
+    }).then(ok => { if (ok) doApplyTemplate(t); });
+    return;
+  }
+  doApplyTemplate(t);
+}
+
+function doApplyTemplate(t) {
+  // Deep clone so editing doesn't mutate the template
+  S.event = {
+    name: t.event.name,
+    axes: t.event.axes.map((a, i) => ({
+      id: 'a' + i,
+      name: a.name,
+      options: a.options.slice(),
+    })),
+  };
+  S.myName = '';
+  S.myScores = {};
+  S.rawCodes = '';
+  S.whatIfExcluded = new Set();
+  S.sessionBanner = { responses: [], dismissed: false };
+  try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+  try { localStorage.removeItem(LAST_EVENT_KEY); } catch (e) {}
+  $('#share-result').classList.remove('show');
+  persist();
+  renderSetup();
+  renderEventPills();
+  setMode('setup');
+  toast(`Loaded "${t.name}" template`);
+}
+window.applyTemplate = applyTemplate;
+
+// ---- Verdict (read-only shared result view) ----
+// Compact payload: { n: eventName, a: [{name,pick}], t: total, m: min, p: participantCount }
+function buildVerdictPayload(eventObj, winner, participantCount) {
+  return {
+    n: eventObj.name || '',
+    a: eventObj.axes.map((ax, i) => ({ name: ax.name, pick: ax.options[winner.combo[i]] })),
+    t: winner.total,
+    m: winner.min,
+    p: participantCount,
+  };
+}
+window.buildVerdictPayload = buildVerdictPayload;
+
+function encodeVerdict(payload) {
+  const json = JSON.stringify(payload);
+  const bytes = new TextEncoder().encode(json);
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+window.encodeVerdict = encodeVerdict;
+
+function decodeVerdict(b64u) {
+  try {
+    const pad = '==='.slice((b64u.length + 3) % 4);
+    const b64 = b64u.replace(/-/g, '+').replace(/_/g, '/') + pad;
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const json = new TextDecoder().decode(bytes);
+    return JSON.parse(json);
+  } catch (e) { return null; }
+}
+window.decodeVerdict = decodeVerdict;
+
+function renderVerdict(payload) {
+  const wrap = $('#verdict-wrap');
+  if (!wrap) return;
+  document.body.classList.add('verdict-view');
+  wrap.innerHTML = '';
+
+  const card = el('div', { class: 'verdict-card' });
+  card.appendChild(el('div', { class: 'verdict-label' }, 'Decided'));
+  card.appendChild(el('h1', { class: 'verdict-title' }, payload.n || '(unnamed event)'));
+
+  const axes = el('div', { class: 'verdict-axes' });
+  (payload.a || []).forEach(a => {
+    const row = el('div', { class: 'verdict-axis' });
+    row.appendChild(el('span', { class: 'va-name' }, a.name));
+    row.appendChild(el('span', { class: 'va-pick' }, a.pick));
+    axes.appendChild(row);
+  });
+  card.appendChild(axes);
+
+  const stats = el('div', { class: 'verdict-stats' });
+  const pc = payload.p || 0;
+  stats.appendChild(el('span', {}, `${pc} participant${pc === 1 ? '' : 's'}`));
+  stats.appendChild(el('span', {}, `Total satisfaction: ${payload.t}`));
+  stats.appendChild(el('span', {}, `Fairness floor: ${payload.m}`));
+  card.appendChild(stats);
+
+  const footer = el('div', { class: 'verdict-footer' });
+  footer.appendChild(el('a', {
+    href: location.pathname,
+    class: 'verdict-cta',
+  }, '→ Create your own Nemawashi decision'));
+  footer.appendChild(el('div', { class: 'verdict-brand' }, 'nemawashi.naklitechie.com'));
+
+  wrap.appendChild(card);
+  wrap.appendChild(footer);
+}
 
 // ---- Encrypted share (CONV.md canonical, PBKDF2 200k, dot-separated) ----
 const _b64u = (arr) => btoa(String.fromCharCode(...arr))
@@ -1688,13 +2472,15 @@ function newAxis(name = '', options = ['', '']) {
 
 function ensureMinAxis() {
   if (S.event.axes.length === 0) {
-    S.event.axes.push(newAxis('Dates', ['Option 1', 'Option 2']));
+    S.event.axes.push(newAxis('', ['', '']));
   }
 }
 
 function renderSetup() {
   renderEventPills();
+  renderTemplateGrid();
   $('#event-name').value = S.event.name || '';
+  $('#event-roster').value = (S.event.roster || []).join(', ');
   const list = $('#axes-list');
   list.innerHTML = '';
 
@@ -1793,6 +2579,10 @@ function bindSetup() {
     S.event.name = e.target.value;
     persist();
   });
+  $('#event-roster').addEventListener('input', (e) => {
+    S.event.roster = parseRoster(e.target.value);
+    persist();
+  });
   $('#add-axis-btn').addEventListener('click', () => {
     if (S.event.axes.length >= 8) { toast('Maximum 8 axes', 'error'); return; }
     S.event.axes.push(newAxis('', ['', '']));
@@ -1801,6 +2591,10 @@ function bindSetup() {
   });
   $('#gen-link-btn').addEventListener('click', generatePlainLink);
   $('#gen-enc-btn').addEventListener('click', generateEncryptedLink);
+  $('#template-btn').addEventListener('click', () => {
+    renderTemplateGrid(true);
+    $('#template-grid-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
   $('#reset-btn').addEventListener('click', resetEvent);
   $('#copy-link-btn').addEventListener('click', async () => {
     const url = $('#share-result-url').textContent;
@@ -1831,7 +2625,7 @@ function validateConfig() {
 }
 
 function snapshotEvent() {
-  // Clean copy with trimmed values, no empty options. Preserves salt if present.
+  // Clean copy with trimmed values, no empty options. Preserves salt + roster.
   const out = {
     name: S.event.name.trim(),
     axes: S.event.axes.map((a, i) => ({
@@ -1841,6 +2635,9 @@ function snapshotEvent() {
     })),
   };
   if (S.event.salt) out.salt = S.event.salt;
+  if (S.event.roster && S.event.roster.length) {
+    out.roster = S.event.roster.map(r => r.trim()).filter(Boolean);
+  }
   return out;
 }
 
@@ -2150,6 +2947,33 @@ async function deleteStoredEvent(salt, name) {
   toast('Event deleted');
 }
 
+function renderTemplateGrid(forceVisible = false) {
+  const wrap = $('#template-grid-wrap');
+  const grid = $('#template-grid');
+  if (!wrap || !grid) return;
+  // Auto-show only when the draft is empty AND no salted event is loaded
+  const isEmpty = !S.event.salt && !currentDraftIsDirty() && (S.event.axes.length === 0 ||
+    (S.event.axes.length === 1 && !S.event.axes[0].name.trim() &&
+     S.event.axes[0].options.every(o => !o.trim())));
+  if (!forceVisible && !isEmpty) {
+    wrap.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  grid.innerHTML = '';
+  TEMPLATES.forEach(t => {
+    const card = el('button', {
+      class: 'template-card',
+      onclick: () => applyTemplate(t.id),
+      title: t.description,
+    });
+    card.appendChild(el('span', { class: 'template-emoji' }, t.emoji));
+    card.appendChild(el('span', { class: 'template-name' }, t.name));
+    card.appendChild(el('span', { class: 'template-desc' }, t.description));
+    grid.appendChild(card);
+  });
+}
+
 function renderEventPills() {
   const wrap = $('#event-pills');
   if (!wrap) return;
@@ -2240,7 +3064,8 @@ function bindResults() {
     resultsDebounce = setTimeout(refreshResults, 120);
   });
   $('#copy-results-btn').addEventListener('click', copyResultsAsText);
-  $('#download-png-btn').addEventListener('click', downloadResultsPng);
+  $('#copy-verdict-link-btn').addEventListener('click', copyVerdictLink);
+  $('#download-card-btn').addEventListener('click', downloadVerdictCard);
 }
 
 function refreshResults() {
@@ -2310,20 +3135,88 @@ async function computeAndRender(usable) {
   if (valid.length === 0) {
     out.appendChild(renderDeadlock(invalid, usable));
   } else {
-    out.appendChild(renderWinner(valid[0]));
+    out.appendChild(renderWinner(valid[0], usable));
     out.appendChild(renderTopTable(valid.slice(0, 5)));
   }
   out.appendChild(renderHeatmaps(usable));
 }
 
+function renderRosterProgress() {
+  const wrap = $('#roster-progress');
+  if (!wrap) return;
+  const roster = S.event.roster || [];
+  if (roster.length === 0) {
+    wrap.hidden = true;
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.hidden = false;
+  wrap.innerHTML = '';
+
+  const total = roster.length;
+  const responded = roster.filter(r =>
+    S.responses.some(resp => normaliseName(resp.name) === normaliseName(r))
+  ).length;
+  const missing = getMissingFromRoster(roster, S.responses);
+  const pct = total > 0 ? Math.round((responded / total) * 100) : 0;
+
+  // Header row: "3 of 5 responded"
+  const header = el('div', { class: 'rp-header' });
+  header.appendChild(el('strong', {}, `${responded} of ${total} responded`));
+  if (responded === total) {
+    header.appendChild(el('span', { class: 'rp-check' }, ' ✓ all in'));
+  }
+  wrap.appendChild(header);
+
+  // Progress bar
+  const bar = el('div', { class: 'rp-bar' });
+  const fill = el('div', { class: 'rp-bar-fill', style: `width:${pct}%;` });
+  bar.appendChild(fill);
+  wrap.appendChild(bar);
+
+  // Waiting list + ping button
+  if (missing.length > 0) {
+    const waiting = el('div', { class: 'rp-waiting' });
+    waiting.appendChild(el('span', { class: 'rp-waiting-label' }, 'Still waiting on: '));
+    waiting.appendChild(el('span', { class: 'rp-waiting-names' }, missing.join(', ')));
+    wrap.appendChild(waiting);
+
+    const remind = el('button', {
+      class: 'btn small accent rp-remind',
+      onclick: () => copyReminderMessage(missing),
+    }, '📋 Copy reminder message');
+    wrap.appendChild(remind);
+  }
+}
+
+async function copyReminderMessage(missing) {
+  const eventName = (S.event.name || 'this event').trim();
+  const url = location.origin + location.pathname + '#' + encodeConfig(snapshotEvent());
+  const names = missing.length === 1 ? missing[0]
+    : missing.length === 2 ? `${missing[0]} and ${missing[1]}`
+    : `${missing.slice(0, -1).join(', ')} and ${missing[missing.length - 1]}`;
+  const msg = `Hi ${names} — still waiting on your response for ${eventName} 🌱\n\n${url}`;
+  if (await copyToClipboard(msg)) {
+    toast('Reminder copied — paste it in the chat');
+  } else {
+    toast('Copy failed', 'error');
+  }
+}
+
 function renderParticipantChips() {
   const wrap = $('#participant-chips');
   wrap.innerHTML = '';
+
+  // Roster progress (above the chips, if roster exists)
+  renderRosterProgress();
+
   if (S.responses.length === 0) return;
   wrap.appendChild(el('div', { style: 'font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.04em;margin-top:6px;' }, `${S.responses.length} participant${S.responses.length === 1 ? '' : 's'}`));
+  const roster = S.event.roster || [];
   S.responses.forEach((r) => {
     const excluded = S.whatIfExcluded.has(r.name);
-    const chip = el('div', { class: 'pchip' + (excluded ? ' excluded' : '') });
+    const unexpected = roster.length > 0 && !rosterMatch(roster, r.name);
+    const chip = el('div', { class: 'pchip' + (excluded ? ' excluded' : '') + (unexpected ? ' unexpected' : '') });
     const cb = el('input', {
       type: 'checkbox',
       checked: !excluded ? 'checked' : false,
@@ -2336,6 +3229,9 @@ function renderParticipantChips() {
     if (!excluded) cb.checked = true;
     chip.appendChild(cb);
     chip.appendChild(el('span', { class: 'pname' }, r.name));
+    if (unexpected) {
+      chip.appendChild(el('span', { class: 'pchip-unexpected', title: 'Not in the expected participants list' }, '?'));
+    }
     chip.appendChild(el('button', {
       class: 'x',
       title: 'Remove this response',
@@ -2356,7 +3252,7 @@ function renderParticipantChips() {
   });
 }
 
-function renderWinner(top) {
+function renderWinner(top, usable) {
   const card = el('div', { class: 'winner-card' });
   card.appendChild(el('h3', {}, '✨ Best combination'));
   const axesWrap = el('div', { class: 'winner-axes' });
@@ -2371,6 +3267,42 @@ function renderWinner(top) {
   stats.appendChild(el('span', {}, `Total satisfaction: ${top.total}`));
   stats.appendChild(el('span', {}, `Fairness floor: ${top.min}`));
   card.appendChild(stats);
+
+  // Sensitivity disclosure — "Why this won"
+  const expl = explainWinner(top, S.event.axes, usable);
+  if (expl && (expl.constraint || expl.alternative)) {
+    const disc = el('details', { class: 'winner-explain' });
+    disc.appendChild(el('summary', {}, 'Why this won'));
+    const body = el('div', { class: 'winner-explain-body' });
+
+    if (expl.constraint) {
+      const c = expl.constraint;
+      const p = el('p', {});
+      p.appendChild(el('strong', {}, c.winningOption));
+      p.appendChild(document.createTextNode(` is the only ${c.axisName} option nobody blocked. `));
+      if (c.blockedOthers.length > 0) {
+        const parts = c.blockedOthers.map(b => `${b.blockers.join(' and ')} blocked ${b.option}`);
+        p.appendChild(document.createTextNode(parts.join('; ') + '.'));
+      }
+      body.appendChild(p);
+    }
+
+    if (expl.alternative) {
+      const a = expl.alternative;
+      const picks = S.event.axes.map((ax, i) => ax.options[a.newCombo[i]]).join(' · ');
+      const p = el('p', {});
+      p.appendChild(document.createTextNode('If '));
+      p.appendChild(el('strong', {}, a.name));
+      p.appendChild(document.createTextNode(` could flex on "${a.optionName}" (${a.axisName}), the winner would change to `));
+      p.appendChild(el('strong', {}, picks));
+      p.appendChild(document.createTextNode(` (total ${a.newTotal}, +${a.delta}).`));
+      body.appendChild(p);
+    }
+
+    disc.appendChild(body);
+    card.appendChild(disc);
+  }
+
   return card;
 }
 
@@ -2534,22 +3466,89 @@ function loadHtml2Canvas() {
   });
 }
 
-async function downloadResultsPng() {
-  const target = $('#results-output');
-  if (!target || !target.firstChild) { toast('Nothing to export', 'error'); return; }
-  toast('Loading exporter…');
+// Compute the current winner from the live responses (used by both verdict
+// link and shareable image). Returns null if no valid winner.
+function getCurrentWinner() {
+  const usable = S.responses.filter(r => !S.whatIfExcluded.has(r.name));
+  if (!usable.length || !S.event.axes.length) return null;
+  const { valid } = synchronousRank(S.event.axes, usable);
+  if (!valid.length) return null;
+  return { winner: valid[0], participantCount: usable.length };
+}
+
+async function copyVerdictLink() {
+  const cur = getCurrentWinner();
+  if (!cur) { toast('No winner yet', 'error'); return; }
+  const payload = buildVerdictPayload(S.event, cur.winner, cur.participantCount);
+  const url = location.origin + location.pathname + '#v=' + encodeVerdict(payload);
+  if (await copyToClipboard(url)) toast('Verdict link copied — paste in chat');
+  else toast('Copy failed', 'error');
+}
+
+// Build an off-screen 1200×630 polished shareable card and render it via
+// html2canvas. Uses its own dedicated layout — NOT a screenshot of the
+// live results panel.
+async function downloadVerdictCard() {
+  const cur = getCurrentWinner();
+  if (!cur) { toast('No winner yet', 'error'); return; }
+  toast('Building image…');
   const h2c = await loadHtml2Canvas();
-  if (!h2c) { toast('PNG export unavailable (offline?)', 'error'); return; }
+  if (!h2c) { toast('Image export unavailable (offline?)', 'error'); return; }
+
+  // Build the card DOM off-screen
+  const wrap = document.createElement('div');
+  wrap.className = 'verdict-card-og';
+  wrap.innerHTML = `
+    <div class="voc-stripe"></div>
+    <div class="voc-inner">
+      <div class="voc-label">根回し · DECIDED</div>
+      <h1 class="voc-title"></h1>
+      <div class="voc-axes"></div>
+      <div class="voc-stats"></div>
+      <div class="voc-footer">
+        <span class="voc-brand">nemawashi.naklitechie.com</span>
+        <span class="voc-hanko">決</span>
+      </div>
+    </div>
+  `;
+  wrap.querySelector('.voc-title').textContent = S.event.name || '(unnamed event)';
+  const axesDiv = wrap.querySelector('.voc-axes');
+  S.event.axes.forEach((ax, i) => {
+    const row = document.createElement('div');
+    row.className = 'voc-axis';
+    row.innerHTML = `<span class="voc-ax-name"></span><span class="voc-ax-pick"></span>`;
+    row.querySelector('.voc-ax-name').textContent = ax.name;
+    row.querySelector('.voc-ax-pick').textContent = ax.options[cur.winner.combo[i]] || '';
+    axesDiv.appendChild(row);
+  });
+  const statsDiv = wrap.querySelector('.voc-stats');
+  const stat = (label, val) => {
+    const s = document.createElement('div');
+    s.className = 'voc-stat';
+    s.innerHTML = `<span class="voc-stat-val"></span><span class="voc-stat-label"></span>`;
+    s.querySelector('.voc-stat-val').textContent = val;
+    s.querySelector('.voc-stat-label').textContent = label;
+    return s;
+  };
+  statsDiv.appendChild(stat('participants', String(cur.participantCount)));
+  statsDiv.appendChild(stat('total', String(cur.winner.total)));
+  statsDiv.appendChild(stat('fairness', String(cur.winner.min)));
+
+  document.body.appendChild(wrap);
+  await new Promise(r => setTimeout(r, 50));
+
   try {
-    const canvas = await h2c(target, { backgroundColor: '#fafaf9', scale: 2 });
+    const canvas = await h2c(wrap, { backgroundColor: '#f3ede0', scale: 2, width: 1200, height: 630 });
     const url = canvas.toDataURL('image/png');
     const a = document.createElement('a');
     a.href = url;
-    a.download = `nemawashi-${(S.event.name || 'event').replace(/[^a-z0-9]+/gi, '_')}.png`;
+    a.download = `nemawashi-${(S.event.name || 'event').replace(/[^a-z0-9]+/gi, '_').slice(0, 40)}.png`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    toast('PNG downloaded');
+    toast('Image downloaded');
   } catch (e) {
     toast('Export failed', 'error');
+  } finally {
+    document.body.removeChild(wrap);
   }
 }
 
@@ -2580,6 +3579,12 @@ async function loadFromHash() {
   if (h === 'guide' || h.startsWith('guide=')) {
     const track = h.startsWith('guide=') ? h.slice(6) : null;
     return { kind: 'guide', track };
+  }
+
+  // Verdict deep-link: #v=<base64url>
+  if (h.startsWith('v=')) {
+    const payload = decodeVerdict(h.slice(2));
+    return payload ? { kind: 'verdict', payload } : { kind: 'none' };
   }
 
   // Encrypted variant — payload is base64.base64.base64, optionally followed by &r=...
@@ -2752,6 +3757,12 @@ async function init() {
     return;
   }
 
+  if (result.kind === 'verdict') {
+    renderVerdict(result.payload);
+    setMode('verdict');
+    return;
+  }
+
   if (result.kind === 'event') {
     const cached = loadFor(S.event);
     if (cached) {
@@ -2811,6 +3822,11 @@ window.addEventListener('hashchange', async () => {
   if (result.kind === 'guide') {
     if (result.track) setGuideTrack(result.track);
     setMode('guide');
+    return;
+  }
+  if (result.kind === 'verdict') {
+    renderVerdict(result.payload);
+    setMode('verdict');
     return;
   }
   if (result.kind === 'event') {

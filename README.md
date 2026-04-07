@@ -41,6 +41,8 @@ For sensitive events, *Encrypted link…* gives you an AES-256-GCM (PBKDF2 200K)
 - Add / remove / drag-reorder axes (up to 8)
 - Add / remove options per axis (up to 12 each)
 - Plain share link or encrypted share link with passphrase
+- **10 ready-made templates** — Dinner out, Weekend trip, Team offsite, Movie night, Birthday, Book club, Meeting time, Potluck, Group gift, Vacation. Pick one, edit to taste.
+- **Optional expected participants** — comma-separated roster. Drives the "3 of 5 responded · still waiting on Alice" progress in the Results tab.
 - **Pill bar at the top** lists every event you're tracking on this device — tap to switch, ★ marks events you own, × deletes, "+ New event" starts a fresh draft. Run as many events in parallel as you want.
 - Auto-saves your draft to localStorage so you can come back to it
 
@@ -52,12 +54,17 @@ For sensitive events, *Encrypted link…* gives you an AES-256-GCM (PBKDF2 200K)
 
 **Results**
 - Click share-back links from chat → auto-merge into results (one click per participant, no copy-paste). Bulk-paste codes also supported as a fallback
+- **Roster progress bar**: "3 of 5 responded ✓ all in" + still-waiting list + one-click **Copy reminder message** that builds a ready-to-paste nudge
 - Per-axis heatmaps: rows = participants, columns = options, colour-coded by score
 - Top-5 combinations table with total score + fairness floor
 - **Winning combination card** — the answer, large and obvious, with a 決 hanko stamp
+- **"Why this won" sensitivity explainer**: collapsible disclosure under the winner card with two modes — critical-constraint sentences ("Mar 15-17 is the only date nobody blocked; Alice blocked Mar 22-24 and Apr 5-7") and counterfactual sentences ("If Alice could flex on Apr 5-7, the winner would change to Apr 5-7 · Goa · All-inclusive"). Turns the verdict from a number into an explanation.
 - **What-if mode**: toggle participants in / out, ranking updates instantly
 - **Deadlock view**: when no combination is valid, surfaces the closest-to-consensus options *and* "if X could flex on Y" suggestions
-- **Export**: copy as text (paste-back into chat), download as PNG (lazy-loads `html2canvas` from CDN)
+- **Share the verdict three ways**:
+  - 📝 **Copy as text** — formatted summary for paste-back into chat
+  - 🔗 **Copy link** — read-only verdict URL (`#v=…`) that opens a stripped-down results view showing just the winner, participant count, and stats. No tabs, no scores, no deliberation
+  - 🖼️ **Download image** — a polished 1200×630 PNG card with the Japanese palette, indigo stripe, vermillion-accented axis rows, big 決 hanko, and brand footer. Purpose-built for chat and social media, not a screenshot of the live view
 - Validation banner if a pasted code was generated for a different event structure
 
 **Multi-event + cross-device**
@@ -88,7 +95,7 @@ Then visit `http://localhost:8100/`.
 ## Tech
 
 - Zero dependencies, zero build step, zero workers, zero accounts
-- Pure JavaScript, ~2,900 lines including CSS, the Guide tab content, intro/help modals, multi-event switcher, and the non-owner banner
+- Pure JavaScript, ~3,900 lines including CSS, the Guide tab content, intro/help modals, multi-event switcher, non-owner banner, sensitivity analysis, 10 event templates, verdict view, and the polished shareable card template
 - Combinatorial scoring is main-thread with `setTimeout(0)` yields above 5 K combos — sub-100ms for any realistic event (3–5 axes × 3–5 options)
 - `crypto.subtle` for AES-256-GCM, `URLSearchParams` and `encodeURIComponent` for the plain hash format
 - `html2canvas` lazy-loaded from CDN only when the user clicks "Download PNG"
@@ -96,7 +103,7 @@ Then visit `http://localhost:8100/`.
 
 ## Tests
 
-Open `tests.html` in the same folder. **74 unit tests** cover: combinations and ranking, validity and scoring, encode/decode round-trips, response-code parsing, name sanitisation, salt generation and salted-eventId resolution, identical-content / different-salts collision-resistance, salted edit identity preservation, owner / tallier detection, stored-event enumeration, and the encrypt/decrypt round-trip.
+Open `tests.html` in the same folder. **113 unit tests** cover: combinations and ranking, validity and scoring, encode/decode round-trips, response-code parsing, name sanitisation, salt generation and salted-eventId resolution, identical-content / different-salts collision-resistance, salted edit identity preservation, owner / tallier detection, stored-event enumeration, roster parsing + case-insensitive matching + missing-participant detection + URL round-trip, sensitivity analysis (critical-constraint and counterfactual modes), all 10 template shapes + id uniqueness, verdict payload build + URL-safe base64 round-trip, and the encrypt/decrypt round-trip.
 
 ## Series
 
